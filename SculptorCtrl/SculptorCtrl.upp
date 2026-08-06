@@ -1,0 +1,35 @@
+description "OpenGL widget base class\377128,0,0";
+
+uses
+	CtrlCore,
+	plugin/glew,
+	Xform3D;
+
+library(WIN32 (GCC | CLANG)) "glu32 opengl32";
+
+pkg_config(LINUX | BSD) "gl glu";
+
+file
+	SculptorCtrl.h,
+	SculptorCtrl.cpp,
+	Pipeline readonly separator,
+	Pipeline.h,
+	Pipeline.cpp,
+	Scene.h,
+	Scene.cpp,
+	Model.h,
+	Model.cpp,
+	Backends readonly separator,
+	X11.cpp,
+	Win32.cpp,
+	Shaders readonly separator,
+	shaders.brc,
+	fragment.shader,
+	vertex.shader,
+	Meta readonly separator,
+	Sculptor.usc,
+	Docs readonly separator,
+	src.tpp,
+	Info readonly separator,
+	Copying;
+

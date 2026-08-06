@@ -1,0 +1,16 @@
+description "A basic OpenGL rendering example, demonstrating a textured, rotating box with crt effect.\377";
+
+uses
+	SculptorCtrl,
+	CtrlCore,
+	CtrlLib;
+
+file
+	Basics.cpp,
+	Shaders.cpp,
+	Resources readonly separator,
+	Upp.png;
+
+mainconfig
+	"" = "GUI";
+

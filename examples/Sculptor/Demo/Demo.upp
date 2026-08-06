@@ -1,0 +1,18 @@
+description "A software-based 3D renderer and rasterizer demo.\377";
+
+uses
+	CtrlLib,
+	Sculptor;
+
+file
+	Demo.h,
+	Demo.cpp,
+	Shaders.cpp,
+	Models readonly separator,
+	teapot.obj,
+	skull.obj,
+	bunny.obj;
+
+mainconfig
+	"" = "GUI";
+

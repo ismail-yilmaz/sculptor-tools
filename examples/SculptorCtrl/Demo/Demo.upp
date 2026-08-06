@@ -1,0 +1,18 @@
+description "An OpenGL-based 3D renderer widget demo.\377";
+
+uses
+	CtrlLib,
+	SculptorCtrl;
+
+file
+	Demo.h,
+	Demo.cpp,
+	Shaders.cpp,
+	Models readonly separator,
+	teapot.obj,
+	skull.obj,
+	bunny.obj;
+
+mainconfig
+	"" = "GUI";
+

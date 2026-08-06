@@ -1,0 +1,14 @@
+description "A basic soft-3D rendering example, demonstating a textured rotating box.\377";
+
+uses
+	CtrlLib,
+	Sculptor;
+
+file
+	main.cpp,
+	Resources readonly separator,
+	Upp.png;
+
+mainconfig
+	"" = "GUI";
+

@@ -1,0 +1,15 @@
+description "A software-based 3D rendering library.\377128,0,0";
+
+uses
+	Draw,
+	Xform3D;
+
+file
+	Sculptor.h,
+	Sculptor.cpp,
+	Model.cpp,
+	Docs readonly separator,
+	src.tpp,
+	Info readonly separator,
+	Copying;
+

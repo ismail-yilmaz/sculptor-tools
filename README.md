@@ -46,4 +46,8 @@ The SculptorTools nest ships with ready-to-run interactive examples demonstratin
 | **SculptorCtrl::Basics** | The foundational template for embedding the hardware-accelerated OpenGL widget and integrating GLSL shaders. |
 | **SculptorCtrl::Demo** | An interactive OpenGL showcase featuring hardware-accelerated rendering, multiple models, and custom screen-space FBO effects. |
 
+## Screenshots
+
+<img width="1423" height="921" alt="Ekran Görüntüsü 2026-08-06 14-46-10" src="https://github.com/user-attachments/assets/bc02a6a6-72d7-4c7e-9f05-be9cc1437a01" />
+
 

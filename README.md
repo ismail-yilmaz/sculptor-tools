@@ -1,9 +1,9 @@
 
 # SculptorTools for U++
 
-**SculptorTools** is a comprehensive 3D graphics nest for the [U++](https://www.ultimatepp.org/) framework. It provides a unified ecosystem for embedding 3D rendering pipelines directly into standard U++ desktop applications. 
+**SculptorTools** is a comprehensive 3D graphics nest for the [U++](https://www.ultimatepp.org/) framework. It provides a unified API for embedding 3D rendering pipelines directly into standard U++ desktop applications. 
 
-This repository contains two distinct rendering packages that share a similar API philosophy but serve different backend requirements: a pure CPU software rasterizer (**Sculptor**) and a hardware-accelerated OpenGL widget (**SculptorCtrl**).
+This repository contains two distinct rendering packages that share a similar API but serve different backend requirements: a pure CPU software rasterizer (**Sculptor**) and a hardware-accelerated OpenGL widget (**SculptorCtrl**).
 
 
 

@@ -49,7 +49,7 @@ void SculptorCtrl::AddShader(const String& name, const String& vshader, const St
 		GLPipeline::userprograms.Add(name, newprg);
 }
 
-void SculptorCtrl::ClearShader(const String& name)
+void SculptorCtrl::RemoveShader(const String& name)
 {
 	int i = GLPipeline::userprograms.Find(name);
 	if(i >= 0) {
@@ -96,7 +96,7 @@ void SculptorCtrl::ClearPostProcess()
 	glpipeline.postprogram = 0;
 }
 
-void SculptorCtrl::ClearTexture(int64 id)
+void SculptorCtrl::RemoveTexture(int64 id)
 {
 	int i = GLPipeline::texturecache.Find(id);
 	if(i >= 0) {

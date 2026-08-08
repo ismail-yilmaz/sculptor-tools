@@ -63,13 +63,13 @@ public:
 
     void          SetShader(const String& name, const String& vshader, const String& fshader);
     void          AddShader(const String& name, const String& vshader, const String& fshader);
-    void          ClearShader(const String& name);
+    void          RemoveShader(const String& name);
     void          ClearShaders();
     
     void          SetPostProcess(const String& fshader);
     void          ClearPostProcess();
 
-	void          ClearTexture(int64 tid);
+	void          RemoveTexture(int64 tid);
 	void          ClearTextures();
 
     virtual void  InitScene()                            { WhenInitScene();    }

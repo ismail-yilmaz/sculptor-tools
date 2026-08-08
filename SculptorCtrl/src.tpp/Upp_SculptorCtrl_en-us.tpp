@@ -85,8 +85,8 @@ shared static registry. The shader is only added if the specified
 registered shaders.&]
 [s3; &]
 [s4; &]
-[s5;:Upp`:`:SculptorCtrl`:`:ClearShader`(const String`&`): [@(0.0.255) void] 
-[* ClearShader]([@(0.0.255) const] String[@(0.0.255) `&] [*@3 name])&]
+[s5;:Upp`:`:SculptorCtrl`:`:RemoveShader`(const String`&`): [@(0.0.255) void] 
+[* RemoveShader]([@(0.0.255) const] String[@(0.0.255) `&] [*@3 name])&]
 [s2;%% Removes a specific shader program with [%-*@3 name] and frees 
 its GPU resources. Note: Although this is an instance method, 
 shaders are stored in a shared static registry.  [/ Note: Calling 
@@ -117,9 +117,9 @@ this specific control instance, returning its pipeline to standard
 forward rendering.&]
 [s3; &]
 [s4; &]
-[s5;:Upp`:`:SculptorCtrl`:`:ClearTexture`(int64`): [@(0.0.255) void] 
-[* ClearTexture]([@(0.128.128) int64 ][*@3 tid])&]
-[s2;%% Deletes a specific OpenGL texture associated with the given 
+[s5;:Upp`:`:SculptorCtrl`:`:RemoveTexture`(int64`): [@(0.0.255) void] 
+[* RemoveTexture](int64 [*@3 tid])&]
+[s2;%% Removes a specific OpenGL texture associated with the given 
 texture ID [%-*@3 tid] from GPU memory.  [/ Note:] [/ Calling this method 
 completely deletes the shared static texture for all instances.]&]
 [s3; &]

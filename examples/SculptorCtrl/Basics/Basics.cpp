@@ -3,8 +3,7 @@
 
 using namespace Upp;
 
-class UppBox : public SculptorCtrl {
-public:
+struct UppBox : SculptorCtrl {
 	ModelGL box;
 	float angle = 0;
 
@@ -29,7 +28,7 @@ public:
 		gls.Perspective(M_PI / 3.0f, sz.cx / sz.cy, 0.01f, 100.0f);
 		gls.LookAt(Point3D(0, 0, 5), Point3D(0, 0, 0), Point3D(0, 1, 0));
 		gls.AddLight(Point3D(-1, -1, 1), White());
-		gls.AddLight(Point3D(1, 1, 1), { 100, 100, 255, 255 });
+		gls.AddLight(Point3D(1, 1, 1), Color(100, 100, 255));
 		gls.UseShader("crt-effect");
 		gls.Uniform("uTime", angle);
 		gls.Rotate(angle * 0.7, angle, angle * 1.3);

@@ -138,6 +138,50 @@ ModelGL& ModelGL::AddBox(const Box3D& box, int64 tid)
 	return *this;
 }
 
+ModelGL& ModelGL::AddSphere(float radius, int slices, int stacks, int64 tid)
+{
+    int v0 = vertices.GetCount();
+    
+    for(int i = 0; i <= stacks; i++) {
+        float lat = (float) M_PI * i / stacks;
+        float sinlat = sin(lat);
+        float coslat = cos(lat);
+
+        for(int j = 0; j <= slices; j++) {
+            float lon = 2.0f * (float)M_PI * j / slices;
+            float sinlon = sin(lon);
+            float coslon = cos(lon);
+
+            Point3D p(radius * sinlat * coslon, radius * coslat, radius * sinlat * sinlon);
+
+            Vertex v;
+            v.position = p;
+            v.normal = p.Normalized();
+            v.texcoord = Pointf((float)j / slices, (float)i / stacks);
+            v.color = defaultcolor;
+            v.textureid = tid;
+            
+            AddVertex(v);
+        }
+    }
+
+    for(int i = 0; i < stacks; i++) {
+        for(int j = 0; j < slices; j++) {
+            int nextj = j + 1;
+            
+            int id0 = v0 + i * (slices + 1) + j;
+            int id1 = v0 + (i + 1) * (slices + 1) + j;
+            int id2 = v0 + (i + 1) * (slices + 1) + nextj;
+            int id3 = v0 + i * (slices + 1) + nextj;
+
+            AddTriangle(id0, id1, id2);
+            AddTriangle(id0, id2, id3);
+        }
+    }
+    
+    return *this;
+}
+
 Box3D ModelGL::ComputeBounds() const
 {
 	if(vertices.IsEmpty())

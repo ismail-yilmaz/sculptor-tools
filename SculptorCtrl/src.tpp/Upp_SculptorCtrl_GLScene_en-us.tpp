@@ -172,21 +172,25 @@ Returns `*this for method chaining.&]
 [s5;:Upp`:`:GLScene`:`:Translate`(float`,float`,float`): GLScene[@(0.0.255) `&] 
 [* Translate]([@(0.0.255) float] [*@3 x], [@(0.0.255) float] [*@3 y], [@(0.0.255) float] 
 [*@3 z])&]
+[s5;:Upp`:`:GLScene`:`:Translate`(const Point3D`&`): GLScene[@(0.0.255) `&] 
+[* Translate]([@(0.0.255) const] Point3D[@(0.0.255) `&] [*@3 p])&]
 [s2;%% Shifts the geometry along the active coordinate axes by [%-*@3 x], 
-[%-*@3 y], and [%-*@3 z]. If called after a Rotate, the translation 
-occurs along the newly rotated local axes. Returns `*this for 
-method chaining.&]
+[%-*@3 y], and [%-*@3 z], or by [%-*@3 p]. If called after a Rotate, 
+the translation occurs along the newly rotated local axes. Returns 
+`*this for method chaining.&]
 [s3; &]
 [s4; &]
 [s5;:Upp`:`:GLScene`:`:Rotate`(float`,float`,float`): GLScene[@(0.0.255) `&] 
 [* Rotate]([@(0.0.255) float] [*@3 rx], [@(0.0.255) float] [*@3 ry], [@(0.0.255) float] 
 [*@3 rz])&]
+[s5;:Upp`:`:GLScene`:`:Rotate`(const Point3D`&`): GLScene[@(0.0.255) `&] 
+[* Rotate]([@(0.0.255) const] Point3D[@(0.0.255) `&] [*@3 p])&]
 [s2;%% Applies a 3D rotation to the geometry. The angles [%-*@3 rx] 
-, [%-*@3 ry] , and [%-*@3 rz] must be provided in radians. The rotations 
-are applied internally in a fixed order (typically X, then Y, 
-then Z axis). To achieve complex quaternion`-like orbital rotations, 
-you should apply separate, sequential Rotate() calls. Returns 
-`*this for method chaining.&]
+, [%-*@3 ry] , and [%-*@3 rz], or [%-*@3 p] must be provided in radians. 
+The rotations are applied internally in a fixed order (typically 
+X, then Y, then Z axis). To achieve complex quaternion`-like 
+orbital rotations, you should apply separate, sequential Rotate() 
+calls. Returns `*this for method chaining.&]
 [s3; &]
 [s4; &]
 [s5;:Upp`:`:GLScene`:`:Scale`(float`,float`,float`): GLScene[@(0.0.255) `&] 
@@ -199,22 +203,22 @@ for method chaining.&]
 [s4; &]
 [s5;:Upp`:`:GLScene`:`:Scale`(float`): GLScene[@(0.0.255) `&] [* Scale]([@(0.0.255) float] 
 [*@3 scale])&]
-[s2;%%  Uniform scaling overload applying scalar [%-*@3 scale] equally 
+[s2;%% Uniform scaling overload applying scalar [%-*@3 scale] equally 
 across all three axes to resize an object without distorting 
 its proportions. Returns `*this for method chaining.&]
 [s3; &]
 [s4; &]
-[s5;:Upp`:`:GLScene`:`:SetLight`(Point3D`,const RGBA`&`): [@(0.0.255) void] 
-[* SetLight](Point3D [*@3 dir], [@(0.0.255) const] RGBA[@(0.0.255) `&] 
-[*@3 color])&]
+[s5;:Upp`:`:GLScene`:`:SetLight`(const Point3D`&`,const RGBA`&`): [@(0.0.255) void] 
+[* SetLight]([@(0.0.255) const] Point3D[@(0.0.255) `&] [*@3 dir], [@(0.0.255) const] 
+RGBA[@(0.0.255) `&] [*@3 color])&]
 [s2;%% Clears all existing light sources and establishes a single 
 directional light with normalized [%-*@3 direction ]vector and 
 light [%-*@3 color].&]
 [s3; &]
 [s4; &]
-[s5;:Upp`:`:GLScene`:`:AddLight`(Point3D`,const RGBA`&`): GLScene[@(0.0.255) `&] 
-[* AddLight](Point3D [*@3 dir], [@(0.0.255) const] RGBA[@(0.0.255) `&] 
-[*@3 color])&]
+[s5;:Upp`:`:GLScene`:`:AddLight`(const Point3D`&`,const RGBA`&`): GLScene[@(0.0.255) `&
+] [* AddLight]([@(0.0.255) const] Point3D[@(0.0.255) `&] [*@3 dir], [@(0.0.255) const] 
+RGBA[@(0.0.255) `&] [*@3 color])&]
 [s2;%% Appends an additional directional light source with [%-*@3 direction] 
 and [%-*@3 color]. Returns `*this for method chaining.&]
 [s3; &]
@@ -224,9 +228,9 @@ and [%-*@3 color]. Returns `*this for method chaining.&]
 scene.&]
 [s3; &]
 [s4; &]
-[s5;:Upp`:`:GLScene`:`:AddOverlay`(Point`,const Image`&`): GLScene[@(0.0.255) `&] 
-[* AddOverlay](Point [*@3 pos], [@(0.0.255) const] Image[@(0.0.255) `&] 
-[*@3 img])&]
+[s5;:Upp`:`:GLScene`:`:AddOverlay`(const Point`&`,const Image`&`): GLScene[@(0.0.255) `&
+] [* AddOverlay]([@(0.0.255) const] Point[@(0.0.255) `&] [*@3 pos], [@(0.0.255) const] 
+Image[@(0.0.255) `&] [*@3 img])&]
 [s2;%% Draws a 2D screen`-space image overlay at the specified pixel 
 coordinates [%-*@3 pos] over the rendered 3D scene. Returns `*this 
 for method chaining.&]

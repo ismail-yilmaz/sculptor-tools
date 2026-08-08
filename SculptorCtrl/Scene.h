@@ -32,15 +32,17 @@ public:
     void          PopMatrix();
     GLScene&      Identity();
     GLScene&      Translate(float x, float y, float z);
+    GLScene&      Translate(const Point3D& p);
     GLScene&      Rotate(float rx, float ry, float rz);
+    GLScene&      Rotate(const Point3D& p);
     GLScene&      Scale(float sx, float sy, float sz);
     GLScene&      Scale(float scale);
                             
-    void          SetLight(Point3D dir, const RGBA& color);
-    GLScene&      AddLight(Point3D dir, const RGBA& color);
+    void          SetLight(const Point3D& dir, const RGBA& color);
+    GLScene&      AddLight(const Point3D& dir, const RGBA& color);
     void          ClearLights();
                             
-    GLScene&      AddOverlay(Point pos, const Image& img);
+    GLScene&      AddOverlay(const Point& pos, const Image& img);
 	GLScene&      AddOverlay(int x, int y, const Image& img);
     void          ClearOverlays();
                             

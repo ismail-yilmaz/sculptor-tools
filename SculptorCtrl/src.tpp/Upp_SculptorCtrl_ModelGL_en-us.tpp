@@ -151,6 +151,15 @@ bounds [%-*@3 box], optionally mapping it to texture index/identifier
 [%-*@3 tid] . Returns `*this for method chaining.&]
 [s3; &]
 [s4; &]
+[s5;:Upp`:`:ModelGL`:`:AddSphere`(float`,int`,int`,int64`): ModelGL[@(0.0.255) `&] 
+[* AddSphere]([@(0.0.255) float] [*@3 radius], [@(0.0.255) int] [*@3 slices], 
+[@(0.0.255) int] [*@3 stacks], int64 [*@3 tid] [@(0.0.255) `=] [@3 0])&]
+[s0;l288;%% Procedurally generates and appends a sphere of given 
+[%-*@3 radius] tessellated into horizontal [%-*@3 stacks] and vertical 
+[%-*@3 slices] , mapped to texture [%-*@3 tid] . Returns `*this for 
+method chaining.&]
+[s3; &]
+[s4; &]
 [s5;:Upp`:`:ModelGL`:`:ComputeBounds`(`)const: Box3D [* ComputeBounds]() 
 [@(0.0.255) const]&]
 [s2;%% Calculates and returns the axis`-aligned bounding box that 

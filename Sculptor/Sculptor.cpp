@@ -148,13 +148,13 @@ Sculptor& Sculptor::Scale(float sx, float sy, float sz)
 	return *this;
 }
 
-void Sculptor::SetLight(Point3D dir, const RGBA& color)
+void Sculptor::SetLight(const Point3D& dir, const RGBA& color)
 {
 	ClearLights();
 	AddLight(dir, color);
 }
 
-Sculptor& Sculptor::AddLight(Point3D dir, const RGBA& color)
+Sculptor& Sculptor::AddLight(const Point3D& dir, const RGBA& color)
 {
 	LightSource& l = lights.Add();
 	l.dir = dir.Normalized();

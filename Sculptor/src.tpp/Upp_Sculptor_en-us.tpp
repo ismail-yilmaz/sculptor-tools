@@ -233,21 +233,25 @@ Returns `*this for method chaining.&]
 [s5;:Upp`:`:Sculptor`:`:Translate`(float`,float`,float`): Sculptor[@(0.0.255) `&] 
 [* Translate]([@(0.0.255) float] [*@3 x], [@(0.0.255) float] [*@3 y], [@(0.0.255) float] 
 [*@3 z])&]
+[s5;:Upp`:`:Sculptor`:`:Translate`(const Point3D`&`): Sculptor[@(0.0.255) `&] 
+[* Translate]([@(0.0.255) const] Point3D[@(0.0.255) `&] [*@3 p])&]
 [s2;%% Shifts the geometry along the active coordinate axes by [%-*@3 x], 
-[%-*@3 y], and [%-*@3 z]. If called after a Rotate, the translation 
-occurs along the newly rotated local axes. Returns `*this for 
-method chaining.&]
+[%-*@3 y], and [%-*@3 z], or by [%-*@3 p]. If called after a Rotate, 
+the translation occurs along the newly rotated local axes. Returns 
+`*this for method chaining.&]
 [s3; &]
 [s4; &]
 [s5;:Upp`:`:Sculptor`:`:Rotate`(float`,float`,float`): Sculptor[@(0.0.255) `&] 
 [* Rotate]([@(0.0.255) float] [*@3 rx], [@(0.0.255) float] [*@3 ry], [@(0.0.255) float] 
 [*@3 rz])&]
+[s5;:Upp`:`:Sculptor`:`:Rotate`(const Point3D`&`): Sculptor[@(0.0.255) `&] 
+[* Rotate]([@(0.0.255) const] Point3D[@(0.0.255) `&] [*@3 p])&]
 [s2;%% Applies a 3D rotation to the geometry. The angles [%-*@3 rx] 
-, [%-*@3 ry] , and [%-*@3 rz] must be provided in radians. The rotations 
-are applied internally in a fixed order (typically X, then Y, 
-then Z axis). To achieve complex quaternion`-like orbital rotations, 
-you should apply separate, sequential Rotate() calls. Returns 
-`*this for method chaining.&]
+, [%-*@3 ry] , and [%-*@3 rz], or [%-*@3 p] must be provided in radians. 
+The rotations are applied internally in a fixed order (typically 
+X, then Y, then Z axis). To achieve complex quaternion`-like 
+orbital rotations, you should apply separate, sequential Rotate() 
+calls. Returns `*this for method chaining.&]
 [s3; &]
 [s4; &]
 [s5;:Upp`:`:Sculptor`:`:Scale`(float`,float`,float`): Sculptor[@(0.0.255) `&] 
@@ -265,17 +269,17 @@ across all three axes to resize an object without distorting
 its proportions. Returns `*this for method chaining.&]
 [s3; &]
 [s4; &]
-[s5;:Upp`:`:Sculptor`:`:SetLight`(Point3D`,const RGBA`&`): [@(0.0.255) void] 
-[* SetLight](Point3D [*@3 direction], [@(0.0.255) const] RGBA[@(0.0.255) `&] 
-[*@3 color])&]
+[s5;:Upp`:`:Sculptor`:`:SetLight`(const Point3D`&`,const RGBA`&`): [@(0.0.255) void] 
+[* SetLight]([@(0.0.255) const] Point3D[@(0.0.255) `&] [*@3 dir], [@(0.0.255) const] 
+RGBA[@(0.0.255) `&] [*@3 color])&]
 [s2;%% Clears all existing light sources and establishes a single 
 directional light with normalized [%-*@3 direction ]vector and 
 light [%-*@3 color].&]
 [s3; &]
 [s4; &]
-[s5;:Upp`:`:Sculptor`:`:AddLight`(Point3D`,const RGBA`&`): Sculptor[@(0.0.255) `&] 
-[* AddLight](Point3D [*@3 direction], [@(0.0.255) const] RGBA[@(0.0.255) `&] 
-[*@3 color])&]
+[s5;:Upp`:`:Sculptor`:`:AddLight`(const Point3D`&`,const RGBA`&`): Sculptor[@(0.0.255) `&
+] [* AddLight]([@(0.0.255) const] Point3D[@(0.0.255) `&] [*@3 dir], [@(0.0.255) const] 
+RGBA[@(0.0.255) `&] [*@3 color])&]
 [s2;%% Appends an additional directional light source with [%-*@3 direction] 
 and [%-*@3 color]. Returns `*this for method chaining.&]
 [s3; &]

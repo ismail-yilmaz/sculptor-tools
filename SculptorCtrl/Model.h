@@ -43,6 +43,7 @@ public:
     ModelGL&                 AddTriangle(int a, int b, int c);
     int64                    AddTexture(const Image& img);
     ModelGL&                 AddBox(const Box3D& box, int64 tid = 0);
+    ModelGL&                 AddSphere(float radius, int slices, int stacks, int64 tid = 0);
     Box3D                    ComputeBounds() const;
     Point3D                  GetCenter() const                            { return ComputeBounds().Center(); }
                              

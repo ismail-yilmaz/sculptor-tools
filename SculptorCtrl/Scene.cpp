@@ -130,10 +130,20 @@ GLScene& GLScene::Translate(float x, float y, float z)
     return *this;
 }
 
+GLScene& GLScene::Translate(const Point3D& p)
+{
+	return Translate(p.x, p.y, p.z);
+}
+
 GLScene& GLScene::Rotate(float rx, float ry, float rz)
 {
     glpipeline.modelview *= MatrixGL::Rotation(rx, ry, rz);
     return *this;
+}
+
+GLScene& GLScene::Rotate(const Point3D& p)
+{
+	return Rotate(p.x, p.y, p.z);
 }
 
 GLScene& GLScene::Scale(float sx, float sy, float sz)
@@ -148,13 +158,13 @@ GLScene& GLScene::Scale(float scale)
     return *this;
 }
 
-void GLScene::SetLight(Point3D dir, const RGBA& color)
+void GLScene::SetLight(const Point3D& dir, const RGBA& color)
 {
     glpipeline.lights.Clear();
     AddLight(dir, color);
 }
 
-GLScene& GLScene::AddLight(Point3D dir, const RGBA& color)
+GLScene& GLScene::AddLight(const Point3D& dir, const RGBA& color)
 {
     GLPipeline::LightSource& l = glpipeline.lights.Add();
     l.dir = dir.Normalized();
@@ -167,7 +177,7 @@ void GLScene::ClearLights()
     glpipeline.lights.Clear();
 }
 
-GLScene& GLScene::AddOverlay(Point pos, const Image& img)
+GLScene& GLScene::AddOverlay(const Point& pos, const Image& img)
 {
     GLPipeline::OverlayItem& o = glpipeline.overlays.Add();
     o.pos = pos;

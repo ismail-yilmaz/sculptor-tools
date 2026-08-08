@@ -116,12 +116,14 @@ public:
     void                     PopMatrix();
     Sculptor&                Identity();
     Sculptor&                Translate(float x, float y, float z);
+    Sculptor&                Translate(const Point3D& p)                               { return Translate(p.x, p.y, p.z); }
     Sculptor&                Rotate(float rx, float ry, float rz);
+    Sculptor&                Rotate(const Point3D& p)                                  { return Rotate(p.x, p.y, p.z); }
     Sculptor&                Scale(float sx, float sy, float sz);
     Sculptor&                Scale(float scale)                                        { return Scale(scale, scale, scale); }
                              
-    void                     SetLight(Point3D dir, const RGBA& color);
-    Sculptor&                AddLight(Point3D dir, const RGBA& color);
+    void                     SetLight(const Point3D& dir, const RGBA& color);
+    Sculptor&                AddLight(const Point3D& dir, const RGBA& color);
     void                     ClearLights();
 
     void                     SetNDCConverter(Function<Pointf(const Point3D&)> fn);

@@ -21,6 +21,7 @@ Sculptor ships with three ready-to-run examples demonstrating the pipeline from 
 | Example       | Description |
 | :---          | :---        |
 | **Basics**    | A minimal application serving as the standard template for embedding Sculptor into U++ apps, and utilizing shaders. |
+| **Headless**  | Same minimal example, utilizing software renderer for **headless** (no GUI code) rendering.       |
 | **Demo**      | A showcase featuring three distinct 3D models with various shader effects and UI interaction.     |
 
 

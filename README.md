@@ -9,7 +9,7 @@ This repository contains two distinct rendering packages that share a similar AP
 
 ## Sculptor (Software Rasterization)
 
-A lightweight, fully programmable 3D software rasterization pipeline. It renders geometry directly into standard U++ `Image` buffers entirely on the CPU, providing complete 3D capabilities without relying on external hardware graphics APIs like OpenGL or Vulkan.
+A lightweight, **headless**, fully programmable 3D software rasterization pipeline. It renders geometry directly into standard U++ `Image` buffers entirely on the CPU, providing complete 3D capabilities without relying on external hardware graphics APIs like OpenGL or Vulkan.
 
 *   **Multithreaded Performance:** Lock-free scanline rendering automatically scales across available CPU cores using U++'s native worker threads.
 *   **Programmable C++ Pipeline:** Intercept the pipeline using C++ hooks for custom texture samplers, pixel shaders (cel-shading, rim lighting), post-processing, and non-linear NDC converters (fisheye, VR).
@@ -42,6 +42,7 @@ The SculptorTools nest ships with ready-to-run interactive examples demonstratin
 | Example | Description |
 | :--- | :--- |
 | **Sculptor::Basics** | A minimal application serving as the standard template for embedding the CPU software rasterizer into U++ apps. |
+| **Sculptor::Headless** | Same minimal example, utilizing software renderer for **headless** (no GUI code) rendering.       |
 | **Sculptor::Demo** | A software-rendered showcase featuring distinct 3D models with C++ shader effects and UI interaction. |
 | **SculptorCtrl::Basics** | The foundational template for embedding the hardware-accelerated OpenGL widget and integrating GLSL shaders. |
 | **SculptorCtrl::Demo** | An interactive OpenGL showcase featuring hardware-accelerated rendering, multiple models, and custom screen-space FBO effects. |

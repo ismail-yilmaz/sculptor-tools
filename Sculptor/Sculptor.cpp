@@ -115,7 +115,8 @@ void Sculptor::LookAt(const Point3D& eye, const Point3D& center, const Point3D& 
 
 void Sculptor::PushMatrix()
 {
-	matrixstack.Add(matrixstack.Top());
+	Matrix4D top = matrixstack.Top();
+	matrixstack.Add(top);
 }
 
 void Sculptor::PopMatrix()
@@ -132,19 +133,19 @@ Sculptor& Sculptor::Identity()
 
 Sculptor& Sculptor::Translate(float x, float y, float z)
 {
-	matrixstack.Top() = matrixstack.Top() * Matrix4D::Translation(x, y, z);
+	matrixstack.Top() = Matrix4D::Translation(x, y, z) * matrixstack.Top();
 	return *this;
 }
 
 Sculptor& Sculptor::Rotate(float rx, float ry, float rz)
 {
-	matrixstack.Top() = matrixstack.Top() * Matrix4D::Rotation(rx, ry, rz);
+	matrixstack.Top() = Matrix4D::Rotation(rx, ry, rz) * matrixstack.Top();
 	return *this;
 }
 
 Sculptor& Sculptor::Scale(float sx, float sy, float sz)
 {
-	matrixstack.Top() = matrixstack.Top() * Matrix4D::Scale(sx, sy, sz);
+	matrixstack.Top() = Matrix4D::Scale(sx, sy, sz) * matrixstack.Top();
 	return *this;
 }
 

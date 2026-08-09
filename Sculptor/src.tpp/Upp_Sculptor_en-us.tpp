@@ -257,6 +257,8 @@ calls. Returns `*this for method chaining.&]
 [s5;:Upp`:`:Sculptor`:`:Scale`(float`,float`,float`): Sculptor[@(0.0.255) `&] 
 [* Scale]([@(0.0.255) float] [*@3 sx], [@(0.0.255) float] [*@3 sy], [@(0.0.255) float] 
 [*@3 sz])&]
+[s5;:Upp`:`:Sculptor`:`:Scale`(const Point3D`&`): Sculptor[@(0.0.255) `&] 
+[* Scale]([@(0.0.255) const] Point3D[@(0.0.255) `&] [*@3 p])&]
 [s2;%% Applies non`-uniform scaling to stretch or shrink geometry 
 independently along the local X, Y, and Z axes. Returns `*this 
 for method chaining.&]

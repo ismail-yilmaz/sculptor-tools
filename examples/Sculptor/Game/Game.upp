@@ -1,0 +1,13 @@
+description "A rudimentary labyrinth game, demonstrating Sculptor and UI interaction\377";
+
+uses
+	CtrlLib,
+	Sculptor;
+
+file
+	Labyrinth.h,
+	main.cpp;
+
+mainconfig
+	"" = "GUI";
+

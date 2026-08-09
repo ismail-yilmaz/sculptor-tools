@@ -17,13 +17,14 @@ Sculptor is a lightweight, fully programmable 3D software rasterization pipeline
 
 ## Examples
 
-Sculptor ships with three ready-to-run examples demonstrating the pipeline from basic initialization to advanced rendering techniques.
+Sculptor ships with four ready-to-run examples demonstrating the pipeline from basic initialization to advanced rendering techniques.
 
 | Example       | Description |
 | :---          | :---        |
 | **Basics**    | A minimal application serving as the standard template for embedding Sculptor into U++ apps, and utilizing shaders. |
 | **Headless**  | Same minimal example, utilizing software renderer for **headless** (no GUI code) rendering.       |
 | **Demo**      | A showcase featuring three distinct 3D models with various shader effects and UI interaction.     |
+| **Game**      | A rudimentary labyrinth game, demonstrating Sculptor, animation and UI interaction.               |
 
 ---
 

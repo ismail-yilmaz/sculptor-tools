@@ -146,7 +146,15 @@ public:
     
     void                     Clear();
 
-    
+	// For convenience
+	class Scope : NoCopy {
+		Sculptor& scl;
+	public:
+		Scope(Sculptor& s) : scl(s)                                                    { scl.PushMatrix(); }
+		~Scope()                                                                       { scl.PopMatrix();  }
+	};
+
+   
 private:
     struct LightSource : Moveable<LightSource> {
         Point3D dir;

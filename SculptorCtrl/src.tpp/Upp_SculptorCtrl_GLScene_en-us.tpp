@@ -296,4 +296,16 @@ shader.&]
 [s5;:Upp`:`:GLScene`:`:Clear`(`): [@(0.0.255) void] [* Clear]()&]
 [s2;%% Resets all scene transformation matrices, states, and settings 
 back to their default values .&]
+[s3; &]
+[ {{10000@(113.42.0) [s0;%% [*@7;4 GLScene`::Scope]]}}&]
+[s3; &]
+[s1;:Upp`:`:GLScene`:`:Scope: [@(0.0.255)3 class][3  ][*3 GLScene`::Scope][3  
+][@(0.0.255)3 :][3  NoCopy]&]
+[s2;%% RAII guard for [^topic`:`/`/SculptorCtrl`/src`/Upp`_SculptorCtrl`_GLScene`_en`-us`#Upp`:`:GLScene`:`:PushMatrix`(`)^ G
+LScene`::PushMatrix()] and [^topic`:`/`/SculptorCtrl`/src`/Upp`_SculptorCtrl`_GLScene`_en`-us`#Upp`:`:GLScene`:`:PopMatrix`(`)^ G
+LScene`::PopMatrix()] methods; pushes a matrix stack frame on 
+construction, pops it on destruction so a frame`'s lifetime is 
+scoped to the Scope object regardless of early return, break/continue, 
+or exception.&]
+[s3; &]
 [s3; ]]

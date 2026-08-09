@@ -394,4 +394,15 @@ Sculptor instance into an Image.&]
 [s2;%% Performs a hard reset of the entire Sculptor object, clearing 
 buffers, models, matrices, and settings.&]
 [s3; &]
+[ {{10000@(113.42.0) [s0;%% [*@7;4 Sculptor`::Scope]]}}&]
+[s3; &]
+[s1;:Upp`:`:Sculptor`:`:Scope: [@(0.0.255)3 class][3  ][*3 Scultpor`::Scope][3  
+][@(0.0.255)3 :][3  NoCopy]&]
+[s2;%% RAII guard for[^topic`:`/`/Sculptor`/src`/Upp`_Sculptor`_en`-us`#Upp`:`:Sculptor`:`:PushMatrix`(`)^  
+Sculptor`::PushMatrix()] and [^topic`:`/`/Sculptor`/src`/Upp`_Sculptor`_en`-us`#Upp`:`:Sculptor`:`:PopMatrix`(`)^ S
+culptor`::PopMatrix()] methods; pushes a matrix stack frame on 
+construction, pops it on destruction so a frame`'s lifetime is 
+scoped to the Scope object regardless of early return, break/continue, 
+or except.&]
+[s3; &]
 [s0;%% ]]

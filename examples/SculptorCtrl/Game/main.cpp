@@ -217,26 +217,27 @@ void LabyrinthScene::Render(GLScene& gls)
 	gls.Shading();
 	gls.Cull();
 
-	gls.PushMatrix();
-		gls.Rotate(boardtiltx, boardtilty, 0);
-		gls.Render(boardmodel);
-		gls.PushMatrix();
-			gls.Translate(goalpos);
-			gls.Render(goalmodel);
-		gls.PopMatrix();
-		for(const auto& wall : walls) {
-			gls.PushMatrix();
-				gls.Translate(wall.Center());
-				gls.Scale(wall.Size());
-				gls.Render(wallmodel);
-			gls.PopMatrix();
-		}
-		gls.PushMatrix();
-			gls.Translate(ballpos);
-			gls.Rotate(ballrotx, ballroty, 0);
-			gls.Render(ballmodel);
-		gls.PopMatrix();
-	gls.PopMatrix();
+	GLScene::Scope __scene(gls);
+	gls.Rotate(boardtiltx, boardtilty, 0);
+	gls.Render(boardmodel);
+	
+	{
+		GLScene::Scope __goal(gls);
+		gls.Translate(goalpos);
+		gls.Render(goalmodel);
+	}
+	for(const auto& wall : walls) {
+		GLScene::Scope __wall(gls);
+		gls.Translate(wall.Center());
+		gls.Scale(wall.Size());
+		gls.Render(wallmodel);
+	}
+	{
+		GLScene::Scope __ball(gls);
+		gls.Translate(ballpos);
+		gls.Rotate(ballrotx, ballroty, 0);
+		gls.Render(ballmodel);
+	}
 }
 
 bool LabyrinthScene::Key(dword key, int count)

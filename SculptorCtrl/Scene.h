@@ -60,7 +60,19 @@ public:
                             
     void          Clear();
     void          Reset();
- 
+
+	// For convenience
+	class Scope : NoCopy {
+	public:
+		Scope(GLScene& g) : gls(g) { gls.PushMatrix(); }
+		~Scope()                   { gls.PopMatrix();  }
+		
+	private:
+		GLScene& gls;
+	};
+	
 private:
     GLPipeline& glpipeline;
 };
+
+

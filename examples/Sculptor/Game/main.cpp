@@ -221,27 +221,26 @@ void LabyrinthGame::Paint(Draw& w)
 	renderer.Cull();
 	renderer.Co(); // Parallelize rasterization
 
-	renderer.PushMatrix();
-		renderer.Rotate(boardtiltx, boardtilty, 0);
-		renderer.Render(boardmodel);
-		renderer.PushMatrix();
-			renderer.Translate(goalpos);
-			renderer.Render(goalmodel);
-		renderer.PopMatrix();
-		for(const auto& wall : walls) {
-			renderer.PushMatrix();
-				renderer.Translate(wall.Center());
-				renderer.Scale(wall.Size());
-				renderer.Render(wallmodel);
-			renderer.PopMatrix();
-		}
-		renderer.PushMatrix();
-			renderer.Translate(ballpos);
-			renderer.Rotate(ballrotx, ballroty, 0);
-			renderer.Render(ballmodel);
-		renderer.PopMatrix();
-	renderer.PopMatrix();
-
+	Sculptor::Scope __scene(renderer);
+	renderer.Rotate(boardtiltx, boardtilty, 0);
+	renderer.Render(boardmodel);
+	{
+		Sculptor::Scope __goal(renderer);
+		renderer.Translate(goalpos);
+		renderer.Render(goalmodel);
+	}
+	for(const auto& wall : walls) {
+		Sculptor::Scope __wall(renderer);
+		renderer.Translate(wall.Center());
+		renderer.Scale(wall.Size());
+		renderer.Render(wallmodel);
+	}
+	{
+		Sculptor::Scope __ball(renderer);
+		renderer.Translate(ballpos);
+		renderer.Rotate(ballrotx, ballroty, 0);
+		renderer.Render(ballmodel);
+	}
 	renderer.Rasterize();
 	w.DrawImage(0, 0, renderer.GetImage());
 }

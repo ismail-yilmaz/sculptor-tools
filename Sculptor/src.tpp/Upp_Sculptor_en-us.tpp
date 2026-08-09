@@ -137,6 +137,17 @@ by default. Returns `*this for method chaining.&]
 Returns `*this for method chaining.&]
 [s3; &]
 [s4; &]
+[s5;:Upp`:`:Sculptor`:`:Scissor`(const Rect`&`): Sculptor[@(0.0.255) `&] 
+[* Scissor]([@(0.0.255) const] Rect[@(0.0.255) `&] [*@3 r])&]
+[s2;%% This method restricts pixel rasterization to a specified screen`-space 
+rectangular region. Any geometry or fragments falling outside 
+this bounding box are automatically clipped and discarded. When 
+combined with multi`-core parallel band rendering (Co()), scissoring 
+provides high`-performance viewport isolation for multi`-camera 
+or split`-screen rendering passes. Passing Null rectangle disables 
+Scissor. Default is disabled. Returns `*this for method chaining.&]
+[s3; &]
+[s4; &]
 [s5;:Upp`:`:Sculptor`:`:SetCanvas`(Size`,const RGBA`&`): [@(0.0.255) void] 
 [* SetCanvas](Size [*@3 size], [@(0.0.255) const] RGBA[@(0.0.255) `&] 
 [*@3 paper])&]

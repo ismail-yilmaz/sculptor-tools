@@ -98,6 +98,8 @@ public:
     bool                     IsMipMapping() const                                      { return mipmap; }
     
     Sculptor&                AmbientLight(const RGBA& c)                               { ambientlight = c; return *this; }
+    
+    Sculptor&                Scissor(const Rect& r)                                    { scissor = r; return *this; }
  
     void                     SetCanvas(Size sz, const RGBA& paper);
     void                     ClearCanvas(const RGBA& paper);
@@ -162,6 +164,7 @@ private:
     };
 
     Size                     size;
+    Rect                     scissor;
     ImageBuffer              colorbuffer;
     Buffer<float>            zbuffer;
     Vector<Matrix4D>         matrixstack;

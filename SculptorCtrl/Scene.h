@@ -36,6 +36,7 @@ public:
     GLScene&      Rotate(float rx, float ry, float rz);
     GLScene&      Rotate(const Point3D& p);
     GLScene&      Scale(float sx, float sy, float sz);
+    GLScene&      Scale(const Point3D& p);
     GLScene&      Scale(float scale);
                             
     void          SetLight(const Point3D& dir, const RGBA& color);

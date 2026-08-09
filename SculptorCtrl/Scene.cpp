@@ -152,6 +152,11 @@ GLScene& GLScene::Scale(float sx, float sy, float sz)
     return *this;
 }
 
+GLScene& GLScene::Scale(const Point3D& p)
+{
+	return Scale(p.x, p.y, p.z);
+}
+
 GLScene& GLScene::Scale(float scale)
 {
     glpipeline.modelview *= MatrixGL::Scale(scale);

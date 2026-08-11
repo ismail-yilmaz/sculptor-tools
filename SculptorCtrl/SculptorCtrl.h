@@ -51,7 +51,7 @@ public:
     static void   SetDepthBits(int bits)                 { depthbits = bits; }
     static void   SetStencilBits(int bits)               { stencilbits = bits; }
     static void   SetDoubleBuffering(bool enable = true) { doublebuffering = enable; }
-    static void   SetMSAA(int samples = 4)               { msaasamples = samples; }
+    static void   SetMSAA(int samples = 1)               { msaasamples = samples; }
 
     static void   CreateContext();
     static Size   CurrentViewport()                      { return currentviewport; }

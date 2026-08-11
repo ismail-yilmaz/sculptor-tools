@@ -37,6 +37,8 @@ private:
     float           gradspan   = 0.0f;
     bool            dragging   = false;
     bool            wireframe  = false;
+    bool            xray       = false;
+    bool            alphablend = false;
     bool            bilinear   = true;
     bool            mipmap     = true;
     bool            illum      = true;
@@ -45,6 +47,7 @@ private:
     bool            gradient   = false;
     bool            rimshade   = false;
     Point           mouse      = { 0, 0 };
+    Pointf          mousenorm  = { 0.5f, 0.5f };
     RGBA            colorlo    = Color(40, 60, 160);
     RGBA            colorhi    = Color(255, 200, 120);
 };

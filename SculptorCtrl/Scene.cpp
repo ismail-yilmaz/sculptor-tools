@@ -132,7 +132,7 @@ GLScene& GLScene::Translate(float x, float y, float z)
 
 GLScene& GLScene::Translate(const Point3D& p)
 {
-	return Translate(p.x, p.y, p.z);
+    return Translate(p.x, p.y, p.z);
 }
 
 GLScene& GLScene::Rotate(float rx, float ry, float rz)
@@ -143,7 +143,7 @@ GLScene& GLScene::Rotate(float rx, float ry, float rz)
 
 GLScene& GLScene::Rotate(const Point3D& p)
 {
-	return Rotate(p.x, p.y, p.z);
+    return Rotate(p.x, p.y, p.z);
 }
 
 GLScene& GLScene::Scale(float sx, float sy, float sz)
@@ -154,7 +154,7 @@ GLScene& GLScene::Scale(float sx, float sy, float sz)
 
 GLScene& GLScene::Scale(const Point3D& p)
 {
-	return Scale(p.x, p.y, p.z);
+    return Scale(p.x, p.y, p.z);
 }
 
 GLScene& GLScene::Scale(float scale)
@@ -192,7 +192,7 @@ GLScene& GLScene::AddOverlay(const Point& pos, const Image& img)
 
 GLScene& GLScene::AddOverlay(int x, int y, const Image& img)
 {
-	return AddOverlay(Point(x, y), img);
+    return AddOverlay(Point(x, y), img);
 }
 
 void GLScene::ClearOverlays()
@@ -298,6 +298,10 @@ void GLScene::Render(ModelGL& model)
 
     glUniformMatrix4fv(glGetUniformLocation(prog, "uModelView"), 1, GL_FALSE, &glpipeline.modelview.x.x);
     glUniformMatrix4fv(glGetUniformLocation(prog, "uProjection"), 1, GL_FALSE, &glpipeline.projection.x.x);
+
+    // Hardware transpose of the inverse modelview
+    MatrixGL nmat = glpipeline.modelview.Inverse();
+    glUniformMatrix4fv(glGetUniformLocation(prog, "uNormalMatrix"), 1, GL_TRUE, &nmat.x.x);
 
     int lightcount = min(glpipeline.lights.GetCount(), 32);
     glUniform1i(glGetUniformLocation(prog, "uLightCount"), lightcount);

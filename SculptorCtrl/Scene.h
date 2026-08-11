@@ -44,7 +44,7 @@ public:
     void          ClearLights();
                             
     GLScene&      AddOverlay(const Point& pos, const Image& img);
-	GLScene&      AddOverlay(int x, int y, const Image& img);
+    GLScene&      AddOverlay(int x, int y, const Image& img);
     void          ClearOverlays();
                             
     void          Uniform(const String& name, float v);
@@ -61,18 +61,16 @@ public:
     void          Clear();
     void          Reset();
 
-	// For convenience
-	class Scope : NoCopy {
-	public:
-		Scope(GLScene& g) : gls(g) { gls.PushMatrix(); }
-		~Scope()                   { gls.PopMatrix();  }
-		
-	private:
-		GLScene& gls;
-	};
-	
+    // For convenience
+    class Scope : NoCopy {
+    public:
+        Scope(GLScene& g) : gls(g) { gls.PushMatrix(); }
+        ~Scope()                   { gls.PopMatrix();  }
+        
+    private:
+        GLScene& gls;
+    };
+    
 private:
     GLPipeline& glpipeline;
 };
-
-

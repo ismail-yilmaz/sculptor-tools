@@ -55,7 +55,7 @@ void ObjectViewer::Render(GLScene& gls)
 	
 	gls.Cull(!wireframe)
 		.Wireframe(wireframe)
-		.Shading(true)
+		.Shading(!wireframe)
 		.Bilinear(bilinear)
 		.MipMap(mipmap)
 		.AlphaBlend(false);

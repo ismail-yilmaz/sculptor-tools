@@ -277,27 +277,12 @@ void GLScene::Render(ModelGL& model)
 
 	glEnable(GL_DEPTH_TEST);
 
-	if(glpipeline.culling) {
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-	}
-	else
-		glDisable(GL_CULL_FACE);
-
-	if(glpipeline.alphablend) {
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	}
-	else
-		glDisable(GL_BLEND);
-
 	GLuint prog = glpipeline.curprogram ? glpipeline.curprogram : glpipeline.defprogram;
 	glUseProgram(prog);
 
 	glUniformMatrix4fv(glGetUniformLocation(prog, "uModelView"), 1, GL_FALSE, &glpipeline.modelview.x.x);
 	glUniformMatrix4fv(glGetUniformLocation(prog, "uProjection"), 1, GL_FALSE, &glpipeline.projection.x.x);
 
-	// Hardware transpose of the inverse modelview
 	MatrixGL nmat = glpipeline.modelview.Inverse();
 	glUniformMatrix4fv(glGetUniformLocation(prog, "uNormalMatrix"), 1, GL_TRUE, &nmat.x.x);
 
@@ -312,26 +297,25 @@ void GLScene::Render(ModelGL& model)
 	}
 
 	for(const auto& [key, val] : ~glpipeline.floats)
-		glUniform1f(glGetUniformLocation(prog, key), val);
+		glUniform1f(glGetUniformLocation(prog, ~key), val);
 
 	for(const auto& [key, pt] : ~glpipeline.vec3s)
-		glUniform3f(glGetUniformLocation(prog, key), pt.x, pt.y, pt.z);
+		glUniform3f(glGetUniformLocation(prog, ~key), pt.x, pt.y, pt.z);
 
 	for(const auto& [key, c] : ~glpipeline.rgbas)
-		glUniform4f(glGetUniformLocation(prog, key), c.r / 255.f, c.g / 255.f, c.b / 255.f, c.a / 255.f);
+		glUniform4f(glGetUniformLocation(prog, ~key), c.r / 255.f, c.g / 255.f, c.b / 255.f, c.a / 255.f);
 
 	glBindVertexArray(model.GetVAO());
 
 	GLint utx = glGetUniformLocation(prog, "uUseTex");
 	GLint dwr = glGetUniformLocation(prog, "uDrawWire");
 
-	// Draw loop for handling multi-pass executions
+	// Reusable draw loop for handling multi-pass execution
 	auto draw = [&]() {
 		for(const ModelGL::Batch& b : model.batches) {
 			bool usetex = false;
 			if(b.textureid != 0) {
-				int i = GLPipeline::texturecache.Find(b.textureid);
-				if(i >= 0) {
+				if(int i = GLPipeline::texturecache.Find(b.textureid); i >= 0) {
 					glActiveTexture(GL_TEXTURE0);
 					GLuint tid = (GLuint) GLPipeline::texturecache[i];
 					glBindTexture(GL_TEXTURE_2D, tid);
@@ -351,34 +335,51 @@ void GLScene::Render(ModelGL& model)
 	bool shading = glpipeline.shading;
 	bool wireframe = glpipeline.wireframe;
 
-	// Fallback: If nothing is selected, enforce shading to ensure visibility
 	if(!shading && !wireframe)
 		shading = true;
 
-	// Pass 1: Solid Shading
-	if(shading) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		if(wireframe) {
-			glEnable(GL_POLYGON_OFFSET_FILL);
-			glPolygonOffset(1.0f, 1.0f);
+	auto dps = [&]() {
+		if(shading) { // Pass 1: Solid shading
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			if(wireframe) {
+				glEnable(GL_POLYGON_OFFSET_FILL);
+				glPolygonOffset(1.0f, 1.0f);
+			}
+			if(dwr >= 0)
+				glUniform1i(dwr, 0);
+			draw();
+			if(wireframe)
+				glDisable(GL_POLYGON_OFFSET_FILL);
 		}
+		if(wireframe) { // Pass 2: Wireframe edges
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			if(dwr >= 0)
+				glUniform1i(dwr, 1);
+			draw();
+		}
+	};
 
-		if(dwr >= 0)
-			glUniform1i(dwr, 0);
-
-		draw();
-
-		if(wireframe)
-			glDisable(GL_POLYGON_OFFSET_FILL);
+	if(glpipeline.alphablend) {
+		// Two-Pass OIT
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDepthMask(GL_FALSE);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
+		dps(); // Pass 1: Inner geometry
+		glCullFace(GL_BACK);
+		dps(); // Pass 2: Outer geometry
+		glDepthMask(GL_TRUE);
 	}
-
-	// Pass 2: Wireframe edges
-	if(wireframe) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		if(dwr >= 0)
-			glUniform1i(dwr, 1);
-
-		draw();
+	else {
+		glDisable(GL_BLEND);
+		if(glpipeline.culling) {
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_BACK);
+		}
+		else
+			glDisable(GL_CULL_FACE);
+		dps();
 	}
 
 	// Restore safe default polygon mode state

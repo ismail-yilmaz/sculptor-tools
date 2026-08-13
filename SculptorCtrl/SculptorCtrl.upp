@@ -28,6 +28,7 @@ file
 	Sculptor.usc,
 	Docs readonly separator,
 	src.tpp,
+	srcdoc.tpp,
 	Info readonly separator,
 	Copying;
 

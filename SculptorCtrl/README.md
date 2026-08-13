@@ -17,6 +17,7 @@ SculptorCtrl ships with four ready-to-run interactive examples demonstrating har
 | Example       | Description |
 | :---          | :---        |
 | **Basics**    | A minimal application serving as the standard template for embedding SculptorCtrl into U++ apps, and utilizing shaders. |
+| **Boing**     | A simple OpenGL implementation of the famous Amiga Boing Ball demo (tutorial example code).       |
 | **Demo**      | A showcase featuring three distinct 3D models with various shader effects and UI interaction.     |
 | **Game**      | A rudimentary labyrinth game, demonstrating SculptorCtrl, animation and UI interaction.           |
 

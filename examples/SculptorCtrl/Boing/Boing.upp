@@ -1,0 +1,13 @@
+description "A simple OpenGL recreation of famous Amiga Boing Ball demo\377";
+
+uses
+	CtrlLib,
+	SculptorCtrl;
+
+file
+	main.cpp,
+	shaders.cpp;
+
+mainconfig
+	"" = "GUI";
+

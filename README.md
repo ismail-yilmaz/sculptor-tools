@@ -46,6 +46,7 @@ The SculptorTools nest ships with ready-to-run interactive examples demonstratin
 | **Sculptor::Demo** | A software-rendered showcase featuring distinct 3D models with C++ shader effects and UI interaction. |
 | **Sculptor::Game** | A rudimentary labyrinth game, demonstrating Sculptor, animation and UI interaction.                   |
 | **SculptorCtrl::Basics** | The foundational template for embedding the hardware-accelerated OpenGL widget and integrating GLSL shaders. |
+| **SculptorCtrl::Boing**   | A simple OpenGL implementation of the famous Amiga Boing Ball demo (tutorial example code).       |
 | **SculptorCtrl::Demo** | An interactive OpenGL showcase featuring hardware-accelerated rendering, multiple models, and custom screen-space FBO effects. |
 | **SculptorCtrl::Game** | A rudimentary labyrinth game, demonstrating SculptorCtrl, animation and UI interaction.           |
 

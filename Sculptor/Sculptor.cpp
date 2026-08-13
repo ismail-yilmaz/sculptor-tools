@@ -289,9 +289,10 @@ void Sculptor::Render(const Model3D& m)
     // and uniform scale. Non-uniform Scale() would otherwise skew lighting.
     // Computed once per Render() call, not per vertex.
     Matrix4D normalmat;
+    Matrix4D model = matrixstack.Top();
     bool hasnormalmat = false;
     if(shading) {
-        normalmat = modelview.Inverse();
+        normalmat = model.Inverse();
         hasnormalmat = !normalmat.IsNullInstance();
     }
 

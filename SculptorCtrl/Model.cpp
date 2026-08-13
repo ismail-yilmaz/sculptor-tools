@@ -102,6 +102,30 @@ int64 ModelGL::AddTexture(const Image& img)
 	return id;
 }
 
+ModelGL& ModelGL::AddPlane(const Rectf& r, int64 tid)
+{
+	int i = vertices.GetCount();
+
+	auto addv = [&](float x, float y, float u, float v) {
+		Vertex &vert = vertices.Add();
+		vert.position = Point3D(x, y, 0.0f);
+		vert.normal   = Point3D(0.0f, 0.0f, 1.0f);
+		vert.texcoord = Pointf(u, v);
+		vert.color    = defaultcolor;
+		vert.textureid = tid;
+	};
+
+	addv(r.left,  r.bottom, 0.0f, 0.0f);
+	addv(r.right, r.bottom, 1.0f, 0.0f);
+	addv(r.right, r.top,    1.0f, 1.0f);
+	addv(r.left,  r.top,    0.0f, 1.0f);
+
+	AddTriangle(i, i + 1, i + 2);
+	AddTriangle(i, i + 2, i + 3);
+
+	return *this;
+}
+
 ModelGL& ModelGL::AddBox(const Box3D& box, int64 tid)
 {
 	const Point3D p[8] = {
@@ -140,46 +164,46 @@ ModelGL& ModelGL::AddBox(const Box3D& box, int64 tid)
 
 ModelGL& ModelGL::AddSphere(float radius, int slices, int stacks, int64 tid)
 {
-    int v0 = vertices.GetCount();
-    
-    for(int i = 0; i <= stacks; i++) {
-        float lat = (float) M_PI * i / stacks;
-        float sinlat = sin(lat);
-        float coslat = cos(lat);
+	int v0 = vertices.GetCount();
+	
+	for(int i = 0; i <= stacks; i++) {
+		float lat = (float) M_PI * i / stacks;
+		float sinlat = sin(lat);
+		float coslat = cos(lat);
 
-        for(int j = 0; j <= slices; j++) {
-            float lon = 2.0f * (float)M_PI * j / slices;
-            float sinlon = sin(lon);
-            float coslon = cos(lon);
+		for(int j = 0; j <= slices; j++) {
+			float lon = 2.0f * (float) M_PI * j / slices;
+			float sinlon = sin(lon);
+			float coslon = cos(lon);
 
-            Point3D p(radius * sinlat * coslon, radius * coslat, radius * sinlat * sinlon);
+			Point3D p(radius * sinlat * coslon, radius * coslat, radius * sinlat * sinlon);
 
-            Vertex v;
-            v.position = p;
-            v.normal = p.Normalized();
-            v.texcoord = Pointf((float)j / slices, (float)i / stacks);
-            v.color = defaultcolor;
-            v.textureid = tid;
-            
-            AddVertex(v);
-        }
-    }
+			Vertex v;
+			v.position = p;
+			v.normal = p.Normalized();
+			v.texcoord = Pointf((float) j / slices, (float) i / stacks);
+			v.color = defaultcolor;
+			v.textureid = tid;
+			
+			AddVertex(v);
+		}
+	}
 
-    for(int i = 0; i < stacks; i++) {
-        for(int j = 0; j < slices; j++) {
-            int nextj = j + 1;
-            
-            int id0 = v0 + i * (slices + 1) + j;
-            int id1 = v0 + (i + 1) * (slices + 1) + j;
-            int id2 = v0 + (i + 1) * (slices + 1) + nextj;
-            int id3 = v0 + i * (slices + 1) + nextj;
+	for(int i = 0; i < stacks; i++) {
+		for(int j = 0; j < slices; j++) {
+			int nextj = j + 1;
+			
+			int id0 = v0 + i * (slices + 1) + j;
+			int id1 = v0 + (i + 1) * (slices + 1) + j;
+			int id2 = v0 + (i + 1) * (slices + 1) + nextj;
+			int id3 = v0 + i * (slices + 1) + nextj;
 
-            AddTriangle(id0, id1, id2);
-            AddTriangle(id0, id2, id3);
-        }
-    }
-    
-    return *this;
+			AddTriangle(id0, id1, id2);
+			AddTriangle(id0, id2, id3);
+		}
+	}
+	
+	return *this;
 }
 
 Box3D ModelGL::ComputeBounds() const

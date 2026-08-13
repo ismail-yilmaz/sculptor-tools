@@ -1,2 +1,0 @@
-BINARY(scgl_def_fragment_shader, "fragment.shader")
-BINARY(scgl_def_vertex_shader, "vertex.shader")

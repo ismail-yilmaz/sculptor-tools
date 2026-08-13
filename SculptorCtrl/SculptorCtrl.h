@@ -34,8 +34,6 @@
 
 namespace Upp {
 
-#include "shaders.brc"
-
 #include "Model.h"
 #include "Pipeline.h"
 #include "Scene.h"

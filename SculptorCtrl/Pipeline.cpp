@@ -52,9 +52,8 @@ GLPipeline::~GLPipeline()
 void GLPipeline::Init()
 {
 	if(!defprogram) {
-		static String defvsh(scgl_def_vertex_shader, scgl_def_vertex_shader_length);
-		static String deffsh(scgl_def_fragment_shader, scgl_def_fragment_shader_length);
-		defprogram = CompileProg(defvsh, deffsh);
+		extern const char *scgl_def_vertex_shader, *scgl_def_fragment_shader;
+		defprogram = CompileProg(scgl_def_vertex_shader, scgl_def_fragment_shader);
 	}
 }
 

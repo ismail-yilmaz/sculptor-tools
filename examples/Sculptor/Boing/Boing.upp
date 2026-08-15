@@ -1,0 +1,15 @@
+description "A simple Soft-3D recreation of famous Amiga Boing Ball demo.\377";
+
+uses
+	CtrlLib,
+	Sculptor;
+
+file
+	main.cpp,
+	shaders.cpp,
+	Resources readonly separator,
+	Upp.png;
+
+mainconfig
+	"" = "GUI";
+

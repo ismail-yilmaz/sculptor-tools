@@ -857,7 +857,7 @@ void Sculptor::RasterizeTriangle(const Primitive& prim, Size size, int clipminy,
 
                         for(int j = 0; j < lights.GetCount(); j++) {
                             const LightSource& ls = lights[j];
-                            float intensity = abs(DotProduct(ls.dir, np));
+                            float intensity = max(0.0f, DotProduct(ls.dir, np));
 
                             lr += int(vr * ls.color.r * intensity / 255.0);
                             lg += int(vg * ls.color.g * intensity / 255.0);

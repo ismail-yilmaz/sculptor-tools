@@ -43,6 +43,7 @@ The SculptorTools nest ships with ready-to-run interactive examples demonstratin
 | :--- | :--- |
 | **Sculptor::Basics** | A minimal application serving as the standard template for embedding the CPU software rasterizer into U++ apps. |
 | **Sculptor::Headless** | Same minimal example, utilizing software renderer for **headless** (no GUI code) rendering.       |
+| **Sculptor::Boing**  | A simple Soft-3D implementation of the famous Amiga Boing Ball demo. |
 | **Sculptor::Demo** | A software-rendered showcase featuring distinct 3D models with C++ shader effects and UI interaction. |
 | **Sculptor::Game** | A rudimentary labyrinth game, demonstrating Sculptor, animation and UI interaction.                   |
 | **SculptorCtrl::Basics** | The foundational template for embedding the hardware-accelerated OpenGL widget and integrating GLSL shaders. |

@@ -23,6 +23,7 @@ Sculptor ships with four ready-to-run examples demonstrating the pipeline from b
 | :---          | :---        |
 | **Basics**    | A minimal application serving as the standard template for embedding Sculptor into U++ apps, and utilizing shaders. |
 | **Headless**  | Same minimal example, utilizing software renderer for **headless** (no GUI code) rendering.       |
+| **Boing**     | A simple Soft-3D implementation of the famous Amiga Boing Ball demo.                              |
 | **Demo**      | A showcase featuring three distinct 3D models with various shader effects and UI interaction.     |
 | **Game**      | A rudimentary labyrinth game, demonstrating Sculptor, animation and UI interaction.               |
 

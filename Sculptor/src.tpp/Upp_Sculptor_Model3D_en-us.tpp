@@ -109,9 +109,17 @@ its complete downscaled mipmap chain for texture filtering. Returns
 its texture identifier.&]
 [s3; &]
 [s4; &]
+[s5;:Upp`:`:Model3D`:`:AddPlane`(const Rectf`&`,int64`): Model3D[@(0.0.255) `&] 
+[* AddPlane]([@(0.0.255) const] Rectf[@(0.0.255) `&] [*@3 r], int64 [*@3 tid] 
+[@(0.0.255) `=] [@3 0])&]
+[s2;%% Appends a flat 2D rectangular plane directly to the 3D model 
+geometry using the specified rectangle [%-*@3 r ]and optional texture 
+identifier [%-*@3 tid]. Returns `*this for method chaining.&]
+[s3; &]
+[s4; &]
 [s5;:Upp`:`:Model3D`:`:AddBox`(const Box3D`&`,int64`): Model3D[@(0.0.255) `&] 
 [* AddBox]([@(0.0.255) const] Box3D[@(0.0.255) `&] [*@3 box], [@(0.128.128) int64 
-][*@3 tid] [@(0.0.255) `=] [@(0.0.255) `-][@3 1])&]
+][*@3 tid] [@(0.0.255) `=] [@3 0])&]
 [s2;%% Procedurally generates and appends a 3D box defined by spatial 
 bounds [%-*@3 box], optionally mapping it to texture index [%-*@3 tid]. 
 Teturns `*this for method chaining.&]
@@ -120,7 +128,7 @@ Teturns `*this for method chaining.&]
 [s5;:Upp`:`:Model3D`:`:AddSphere`(float`,int`,int`,int64`): Model3D[@(0.0.255) `&] 
 [* AddSphere]([@(0.0.255) float] [*@3 radius], [@(0.0.255) int] [*@3 slices], 
 [@(0.0.255) int] [*@3 stacks], [@(0.128.128) int64 ][*@3 tid] [@(0.0.255) `=] 
-[@(0.0.255) `-][@3 1])&]
+[@3 0])&]
 [s2;%% Procedurally generates and appends a sphere of given [%-*@3 radius], 
 tessellated into horizontal [%-*@3 stacks] and vertical [%-*@3 slices], 
 mapped to texture [%-*@3 tid]. Returns `*this for method chaining.&]

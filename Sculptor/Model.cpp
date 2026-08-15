@@ -49,6 +49,30 @@ Model3D& Model3D::AddTriangle(int a, int b, int c)
 	return *this;
 }
 
+Model3D& Model3D::AddPlane(const Rectf& r, int64 tid)
+{
+	int i = vertices.GetCount();
+
+	auto addv = [&](float x, float y, float u, float v) {
+		Vertex &vert = vertices.Add();
+		vert.position = Point3D(x, y, 0.0f);
+		vert.normal   = Point3D(0.0f, 0.0f, 1.0f);
+		vert.texcoord = Pointf(u, v);
+		vert.color    = defaultcolor;
+		vert.textureid = tid;
+	};
+
+	addv(r.left,  r.bottom, 0.0f, 0.0f);
+	addv(r.right, r.bottom, 1.0f, 0.0f);
+	addv(r.right, r.top,    1.0f, 1.0f);
+	addv(r.left,  r.top,    0.0f, 1.0f);
+
+	AddTriangle(i, i + 1, i + 2);
+	AddTriangle(i, i + 2, i + 3);
+
+	return *this;
+}
+
 Model3D& Model3D::AddBox(const Box3D& box, int64 tid)
 {
 	const Point3D p[8] = {

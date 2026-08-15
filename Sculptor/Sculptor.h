@@ -38,6 +38,7 @@ public:
     Model3D&                        AddVertex(const Vertex& v);
     Model3D&                        AddTriangle(int a, int b, int c);
     int64                           AddTexture(const Image& img);
+    Model3D&                        AddPlane(const Rectf& r, int64 tid = 0);
     Model3D&                        AddBox(const Box3D& box, int64 tid = 0);
     Model3D&                        AddSphere(float radius, int slices, int stacks, int64 tid = 0);
     Box3D                           ComputeBounds() const;

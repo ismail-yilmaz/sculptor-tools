@@ -146,9 +146,10 @@ identifier.&]
 [s5;:Upp`:`:ModelGL`:`:AddPlane`(const Rectf`&`,int64`): ModelGL[@(0.0.255) `&] 
 [* AddPlane]([@(0.0.255) const] Rectf[@(0.0.255) `&] [*@3 r], int64 [*@3 tid] 
 [@(0.0.255) `=] [@3 0])&]
-[s2;%% Appends a flat 2D rectangular plane directly to the 3D model 
-geometry using the specified rectangle [%-*@3 r ]and optional texture 
-identifier [%-*@3 tid]. Returns `*this for method chaining.&]
+[s2;%% Procedurally generates and appends a flat 2D rectangular plane 
+directly to the 3D model geometry using the specified rectangle 
+[%-*@3 r ]and optional texture identifier [%-*@3 tid]. Returns `*this 
+for method chaining.&]
 [s3; &]
 [s4; &]
 [s5;:Upp`:`:ModelGL`:`:AddBox`(const Box3D`&`,int64`): ModelGL[@(0.0.255) `&] 

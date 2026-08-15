@@ -76,27 +76,42 @@ void LabyrinthGame::BuildMap()
 	float startx = -10.0f;
 	float starty = 10.0f;
 
+	// Iterate through the grid and convert characters into 3D world coordinates
 	for(int r = 0; r < map.GetCount(); r++) {
 		const String& row = map[r];
-		for(int c = 0; c < row.GetCount(); c++) {
-			int chr = row[c];
-			float x = startx + c * cellsize + cellsize * 0.5f;
-			float y = starty - r * cellsize - cellsize * 0.5f;
-			if(chr == '#') {
-				walls.Add() = Box3D(Point3D(x - cellsize * 0.5f, y - cellsize * 0.5f, 0),
-									Point3D(x + cellsize * 0.5f, y + cellsize * 0.5f, 1.0f));
+		int startc = -1; // Tracks the start index of a contiguous wall segment
+		for(int c = 0; c <= row.GetCount(); c++) {
+			bool iswall = (c < row.GetCount() && row[c] == '#');
+			if(iswall && startc == -1) {
+				// Start a new wall segment
+				startc = c;
 			}
 			else
-			if(chr == 'S') {
-				ballpos = Point3D(x, y, 0.5f);
-				ballvel = Point3D(0, 0, 0);
+			if(!iswall && startc != -1) {
+				// End of the segment: create one continuous Box3D
+				float xlo = startx + startc * cellsize;
+				float xhi = startx + c * cellsize;
+				float yhi = starty - r * cellsize;
+				float ylo = yhi - cellsize;
+				walls.Add() = Box3D(Point3D(xlo, ylo, 0), Point3D(xhi, yhi, 1.0f));
+				// Reset tracker
+				startc = -1;
 			}
-			else
-			if(chr == 'G')
-				goalpos = Point3D(x, y, 0);
+
+			if(c < row.GetCount()) {
+				float px = startx + c * cellsize + cellsize * 0.5f;
+				float py = starty - r * cellsize - cellsize * 0.5f;
+				if(row[c] == 'S') {
+					ballpos = Point3D(px, py, 0.5f);
+					ballvel = Point3D(0, 0, 0);
+				}
+				else
+				if(row[c] == 'G') {
+					goalpos = Point3D(px, py, 0.0f);
+				}
+			}
 		}
 	}
-
 }
 
 void LabyrinthGame::Update()

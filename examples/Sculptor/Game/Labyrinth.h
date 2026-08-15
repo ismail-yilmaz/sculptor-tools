@@ -14,6 +14,10 @@ struct LabyrinthGame : TopWindow {
     void    Update();
     
     void    Paint(Draw& w) final;
+    void    RenderBoard(Sculptor& sc);
+    void    RenderGoal(Sculptor& sc);
+    void    RenderWalls(Sculptor& sc);
+    void    RenderBall(Sculptor& sc);
 
     bool    Key(dword key, int count) final;
     void    MouseWheel(Point p, int zdelta, dword keyflags) final;

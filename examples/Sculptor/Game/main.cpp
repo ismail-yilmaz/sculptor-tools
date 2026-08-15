@@ -202,12 +202,13 @@ void LabyrinthGame::Paint(Draw& w)
 
 	Sculptor renderer(sz, Black());
 
+	renderer.Co(); // Parallelize
 	renderer.Perspective(M_PI / 3.0f, sz.cx / sz.cy, 0.1f, 100.0f);
 
 	Point3D camera = {
-		 camdist * cos(campitch) * sin(camyaw),
+		camdist * cos(campitch) * sin(camyaw),
 		-camdist * cos(campitch) * cos(camyaw),
-		 camdist * sin(campitch)
+		camdist * sin(campitch)
 	};
 
 	renderer.LookAt(camera, Point3D(0, 0, 0), Point3D(0, 0, 1));
@@ -217,32 +218,44 @@ void LabyrinthGame::Paint(Draw& w)
 	renderer.AddLight(Point3D(5, 10, 15), Gray());
 	renderer.AddLight(Point3D(0, 0, -5), LtGray());
 
-	renderer.Shading();
-	renderer.Cull();
-	renderer.Co(); // Parallelize rasterization
+	RenderBoard(renderer);
+	RenderGoal(renderer);
+	RenderWalls(renderer);
+	RenderBall(renderer);
 
-	Sculptor::Scope __scene(renderer);
-	renderer.Rotate(boardtiltx, boardtilty, 0);
-	renderer.Render(boardmodel);
-	{
-		Sculptor::Scope __goal(renderer);
-		renderer.Translate(goalpos);
-		renderer.Render(goalmodel);
-	}
-	for(const auto& wall : walls) {
-		Sculptor::Scope __wall(renderer);
-		renderer.Translate(wall.Center());
-		renderer.Scale(wall.Size());
-		renderer.Render(wallmodel);
-	}
-	{
-		Sculptor::Scope __ball(renderer);
-		renderer.Translate(ballpos);
-		renderer.Rotate(ballrotx, ballroty, 0);
-		renderer.Render(ballmodel);
-	}
 	renderer.Rasterize();
 	w.DrawImage(0, 0, renderer.GetImage());
+}
+
+void LabyrinthGame::RenderBoard(Sculptor& sc)
+{
+	sc.Rotate(boardtiltx, boardtilty, 0);
+	sc.Render(boardmodel);
+}
+
+void LabyrinthGame::RenderGoal(Sculptor& sc)
+{
+	Sculptor::Scope __(sc);
+	sc.Translate(goalpos);
+	sc.Render(goalmodel);
+}
+
+void LabyrinthGame::RenderWalls(Sculptor& sc)
+{
+	for(const auto& wall : walls) {
+		Sculptor::Scope __(sc);
+		sc.Translate(wall.Center());
+		sc.Scale(wall.Size());
+		sc.Render(wallmodel);
+	}
+}
+
+void LabyrinthGame::RenderBall(Sculptor& sc)
+{
+	Sculptor::Scope __(sc);
+	sc.Translate(ballpos);
+	sc.Rotate(ballrotx, ballroty, 0);
+	sc.Render(ballmodel);
 }
 
 bool LabyrinthGame::Key(dword key, int count)

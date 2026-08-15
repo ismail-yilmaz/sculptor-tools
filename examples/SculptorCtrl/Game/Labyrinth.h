@@ -14,6 +14,10 @@ struct LabyrinthScene : SculptorCtrl {
     void    Update();
     
     void    Render(GLScene& gls) final;
+    void    RenderBoard(GLScene& gls);
+    void    RenderGoal(GLScene& gls);
+    void    RenderWalls(GLScene& gls);
+    void    RenderBall(GLScene& gls);
 
     bool    Key(dword key, int count) final;
     void    MouseWheel(Point p, int zdelta, dword keyflags) final;

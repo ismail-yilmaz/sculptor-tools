@@ -214,30 +214,42 @@ void LabyrinthScene::Render(GLScene& gls)
 	gls.AddLight(Point3D(5, 10, 15), Gray());
 	gls.AddLight(Point3D(0, 0, -5), LtGray());
 
-	gls.Shading();
-	gls.Cull();
+	RenderBoard(gls);
+	RenderGoal(gls);
+	RenderWalls(gls);
+	RenderBall(gls);
+}
 
-	GLScene::Scope __scene(gls);
+void LabyrinthScene::RenderBoard(GLScene& gls)
+{
+	// Scope is global here, so we can move the whole board in sync.
 	gls.Rotate(boardtiltx, boardtilty, 0);
 	gls.Render(boardmodel);
-	
-	{
-		GLScene::Scope __goal(gls);
-		gls.Translate(goalpos);
-		gls.Render(goalmodel);
-	}
+}
+
+void LabyrinthScene::RenderGoal(GLScene& gls)
+{
+	GLScene::Scope __(gls);
+	gls.Translate(goalpos);
+	gls.Render(goalmodel);
+}
+
+void LabyrinthScene::RenderWalls(GLScene& gls)
+{
 	for(const auto& wall : walls) {
-		GLScene::Scope __wall(gls);
+		GLScene::Scope __(gls);
 		gls.Translate(wall.Center());
 		gls.Scale(wall.Size());
 		gls.Render(wallmodel);
 	}
-	{
-		GLScene::Scope __ball(gls);
-		gls.Translate(ballpos);
-		gls.Rotate(ballrotx, ballroty, 0);
-		gls.Render(ballmodel);
-	}
+}
+
+void LabyrinthScene::RenderBall(GLScene& gls)
+{
+	GLScene::Scope __(gls);
+	gls.Translate(ballpos);
+	gls.Rotate(ballrotx, ballroty, 0);
+	gls.Render(ballmodel);
 }
 
 bool LabyrinthScene::Key(dword key, int count)

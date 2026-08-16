@@ -1,0 +1,13 @@
+description "A rudimentary Asteroids clone, demonstrating SculptorCtrl and UI interaction.\377";
+
+uses
+	CtrlLib,
+	SculptorCtrl;
+
+file
+	Asteroids.h,
+	main.cpp;
+
+mainconfig
+	"" = "GUI";
+

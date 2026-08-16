@@ -17,7 +17,7 @@ Sculptor is a lightweight, fully programmable 3D software rasterization pipeline
 
 ## Examples
 
-Sculptor ships with four ready-to-run examples demonstrating the pipeline from basic initialization to advanced rendering techniques.
+Sculptor ships with several ready-to-run examples demonstrating the pipeline from basic initialization to advanced rendering techniques.
 
 | Example       | Description |
 | :---          | :---        |
@@ -25,8 +25,8 @@ Sculptor ships with four ready-to-run examples demonstrating the pipeline from b
 | **Headless**  | Same minimal example, utilizing software renderer for **headless** (no GUI code) rendering.       |
 | **Boing**     | A simple Soft-3D implementation of the famous Amiga Boing Ball demo.                              |
 | **Demo**      | A showcase featuring three distinct 3D models with various shader effects and UI interaction.     |
-| **Game**      | A rudimentary labyrinth game, demonstrating Sculptor, animation and UI interaction.               |
-
+| **Game1**     | A rudimentary labyrinth game, demonstrating Sculptor, animation and UI interaction.               |
+| **Game2**     | A rudimentary asteroids clone, demonstrating Sculptor, animation and UI interaction.              |
 ---
 
 Because **Sculptor** is a pure CPU software rasterizer, it can run entirely without a GUI or OpenGL context. This makes it ideal for server-side rendering, batch processing, or command-line tools.  `Headless` example from the official package demonstrates a complete 3D pipeline running as a standard U++ console application, outputting directly to a PNG file:

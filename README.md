@@ -45,12 +45,13 @@ The SculptorTools nest ships with ready-to-run interactive examples demonstratin
 | **Sculptor::Headless** | Same minimal example, utilizing software renderer for **headless** (no GUI code) rendering.       |
 | **Sculptor::Boing**  | A simple Soft-3D implementation of the famous Amiga Boing Ball demo. |
 | **Sculptor::Demo** | A software-rendered showcase featuring distinct 3D models with C++ shader effects and UI interaction. |
-| **Sculptor::Game** | A rudimentary labyrinth game, demonstrating Sculptor, animation and UI interaction.                   |
+| **Sculptor::Game1** | A rudimentary labyrinth game, demonstrating Sculptor, animation and UI interaction.                   |
+| **Sculptor::Game2** | A rudimentary asteroids clone, demonstrating Sculptor, animation and UI interaction.               |
 | **SculptorCtrl::Basics** | The foundational template for embedding the hardware-accelerated OpenGL widget and integrating GLSL shaders. |
 | **SculptorCtrl::Boing**   | A simple OpenGL implementation of the famous Amiga Boing Ball demo (tutorial example code).       |
 | **SculptorCtrl::Demo** | An interactive OpenGL showcase featuring hardware-accelerated rendering, multiple models, and custom screen-space FBO effects. |
-| **SculptorCtrl::Game** | A rudimentary labyrinth game, demonstrating SculptorCtrl, animation and UI interaction.           |
-
+| **SculptorCtrl::Game1** | A rudimentary labyrinth game, demonstrating SculptorCtrl, animation and UI interaction.           |
+| **SculptorCtrl::Game2** | A rudimentary asteroids clone, demonstrating SculptorCtrl, animation and UI interaction.           |
 ## Screenshots
 
 <img width="1423" height="921" alt="Ekran Görüntüsü 2026-08-06 14-46-10" src="https://github.com/user-attachments/assets/bc02a6a6-72d7-4c7e-9f05-be9cc1437a01" />

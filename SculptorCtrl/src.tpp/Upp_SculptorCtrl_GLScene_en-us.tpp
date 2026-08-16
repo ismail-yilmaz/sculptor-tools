@@ -193,6 +193,15 @@ orbital rotations, you should apply separate, sequential Rotate()
 calls. Returns `*this for method chaining.&]
 [s3; &]
 [s4; &]
+[s5;:Upp`:`:GLScene`:`:Rotate`(const Quaternion`&`): GLScene[@(0.0.255) `&] 
+[* Rotate]([@(0.0.255) const] Quaternion[@(0.0.255) `&] [*@3 q])&]
+[s2;%% Applies a 3D rotation to the geometry. The quaternion [%-*@3 q] 
+must be normalized. Unlike sequential axis rotations, this applies 
+a single, direct transformation around an arbitrary 3D axis, 
+completely avoiding gimbal lock. Returns `*this for method chaining. 
+.&]
+[s3; &]
+[s4; &]
 [s5;:Upp`:`:GLScene`:`:Scale`(float`,float`,float`): GLScene[@(0.0.255) `&] 
 [* Scale]([@(0.0.255) float] [*@3 sx], [@(0.0.255) float] [*@3 sy], [@(0.0.255) float] 
 [*@3 sz])&]

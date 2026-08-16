@@ -144,6 +144,12 @@ Sculptor& Sculptor::Rotate(float rx, float ry, float rz)
     return *this;
 }
 
+Sculptor& Sculptor::Rotate(const Quaternion& q)
+{
+	matrixstack.Top() = q.GetMatrix() * matrixstack.Top();
+	return *this;
+}
+
 Sculptor& Sculptor::Scale(float sx, float sy, float sz)
 {
     matrixstack.Top() = Matrix4D::Scale(sx, sy, sz) * matrixstack.Top();

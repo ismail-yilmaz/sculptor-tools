@@ -35,6 +35,7 @@ public:
     GLScene&      Translate(const Point3D& p);
     GLScene&      Rotate(float rx, float ry, float rz);
     GLScene&      Rotate(const Point3D& p);
+    GLScene&      Rotate(const Quaternion& q);
     GLScene&      Scale(float sx, float sy, float sz);
     GLScene&      Scale(const Point3D& p);
     GLScene&      Scale(float scale);

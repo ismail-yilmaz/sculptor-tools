@@ -146,6 +146,12 @@ GLScene& GLScene::Rotate(const Point3D& p)
 	return Rotate(p.x, p.y, p.z);
 }
 
+GLScene& GLScene::Rotate(const Quaternion& q)
+{
+	glpipeline.modelview *= q.GetMatrixGL();
+	return *this;
+}
+
 GLScene& GLScene::Scale(float sx, float sy, float sz)
 {
 	glpipeline.modelview *= MatrixGL::Scale(sx, sy, sz);

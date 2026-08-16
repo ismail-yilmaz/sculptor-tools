@@ -122,6 +122,7 @@ public:
     Sculptor&                Translate(const Point3D& p)                               { return Translate(p.x, p.y, p.z); }
     Sculptor&                Rotate(float rx, float ry, float rz);
     Sculptor&                Rotate(const Point3D& p)                                  { return Rotate(p.x, p.y, p.z); }
+    Sculptor&                Rotate(const Quaternion& q);
     Sculptor&                Scale(float sx, float sy, float sz);
     Sculptor&                Scale(const Point3D& p)                                   { return Scale(p.x, p.y, p.z); }
     Sculptor&                Scale(float scale)                                        { return Scale(scale, scale, scale); }

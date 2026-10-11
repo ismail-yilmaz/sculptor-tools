@@ -13,6 +13,7 @@
 #endif
 
 #define GLEW_STATIC
+#define GLEW_NO_GLU
 
 #include <plugin/glew/glew.h>
 
@@ -21,7 +22,6 @@
 #endif
 
 #include <GL/gl.h>
-#include <GL/glu.h>
 
 #if defined(GUI_X11) || defined(GUI_GTK)
 #include <GL/glx.h>

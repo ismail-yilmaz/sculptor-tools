@@ -29,16 +29,13 @@ private:
     
     int             modelindex    = 0;
     float           zoom          = 5.0f;
-    float           targetzoom    = 5.0f;
-    float           rotx          = 0.0f;
-    float           roty          = 0.0f;
-    float           panx          = 0.0f;
-    float           pany          = 0.0f;
     float           goal          = 5.0f;
-    float           goalx         = 0.0f;
-    float           goaly         = 0.0f;
-    float           goalpanx      = 0.0f;
-    float           goalpany      = 0.0f;
+    
+    Pointf          rot           = { 0.0f, 0.0f };
+    Pointf          goalrot       = { 0.0f, 0.0f };
+    Pointf          pan           = { 0.0f, 0.0f };
+    Pointf          goalpan       = { 0.0f, 0.0f };
+    
     float           gradbase      = 0.0f;
     float           gradspan      = 0.0f;
     bool            dragging      = false;
@@ -54,10 +51,11 @@ private:
     bool            gradient      = false;
     bool            rimshade      = false;
     bool            isometric     = false;
+    
     Point           mouse         = { 0, 0 };
     Point           panmouse      = { 0, 0 };
     Pointf          mousenorm     = { 0.5f, 0.5f };
-    Pointf          prevmousenorm = { -1.0f, -1.0f }; // Tracks mouse delta for the timer
+    Pointf          prevmousenorm = { -1.0f, -1.0f };
     RGBA            colorlo       = Color(40, 60, 160);
     RGBA            colorhi       = Color(255, 200, 120);
 };

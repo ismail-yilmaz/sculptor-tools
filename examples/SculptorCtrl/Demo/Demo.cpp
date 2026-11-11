@@ -289,7 +289,6 @@ void ObjectViewer::MouseMove(Point p, dword keyflags)
 	if(sz.cx > 0 && sz.cy > 0) {
 		mousenorm.x = (float)p.x / sz.cx;
 		mousenorm.y = 1.0f - ((float)p.y / sz.cy);
-		Refresh();
 	}
 }
 

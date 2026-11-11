@@ -8,15 +8,28 @@ ObjectViewer::ObjectViewer()
 	files = { "teapot.obj", "skull.obj", "bunny.obj" };
 
 	SetTimeCallback(-16, [=] {
-		if(abs(goalx - rotx) > 0.001f || abs(goaly - roty) > 0.001f || abs(goal - zoom) > 0.001f ||
-		abs(goalpanx - panx) > 0.001f || abs(goalpany - pany) > 0.001f) {
+		bool redraw = false;
+
+		if(abs(goalx - rotx) > 0.001f
+		|| abs(goaly - roty) > 0.001f
+		|| abs(goal - zoom) > 0.001f
+		|| abs(goalpanx - panx) > 0.001f
+		|| abs(goalpany - pany) > 0.001f) {
 			rotx += (goalx - rotx) * 0.15f;
 			roty += (goaly - roty) * 0.15f;
 			zoom += (goal - zoom)  * 0.45f;
 			panx += (goalpanx - panx) * 0.45f;
 			pany += (goalpany - pany) * 0.45f;
-			Refresh();
+			redraw = true;
 		}
+
+		if(mousenorm != prevmousenorm) {
+			prevmousenorm = mousenorm;
+			redraw = true;
+		}
+
+		if(redraw)
+			Refresh();
 	});
 }
 
@@ -63,8 +76,14 @@ void ObjectViewer::Render(GLScene& gls)
 	.MipMap(mipmap)
 	.AlphaBlend(alphablend);
 
-	gls.Perspective(M_PI / 3.0f, sz.cx / sz.cy, 0.1f, 1000.0f);
-	gls.LookAt(Point3D(panx, pany, zoom), Point3D(panx, pany, 0), Point3D(0, 1, 0));
+	if(isometric) {
+		gls.Isometric(zoom, sz.cx / sz.cy, -1000.0f, 1000.0f);
+		gls.LookAt(Point3D(panx, pany, 0.0f), Point3D(panx, pany, -1.0f), Point3D(0, 1, 0));
+	}
+	else {
+		gls.Perspective(M_PI / 3.0f, sz.cx / sz.cy, 0.1f, 1000.0f);
+		gls.LookAt(Point3D(panx, pany, zoom), Point3D(panx, pany, 0.0f), Point3D(0, 1, 0));
+	}
 
 	gls.ClearLights();
 	gls.AddLight(Point3D(0.6f, 1.0f, 0.5f), White());
@@ -90,6 +109,7 @@ void ObjectViewer::Render(GLScene& gls)
 	AddOverlay(gls);
 
 	gls.Rotate(rotx, roty, 0);
+
 	gls.Render(model);
 }
 
@@ -108,7 +128,7 @@ void ObjectViewer::AddOverlay(GLScene& gls)
 		"[T] Triplanar       %[1:On;Off]s\n"
 		"[P] Rim shader      %[1:On;Off]s\n"
 		"[F] Vignette        %[1:On;Off]s\n"
-		"[V] Viewport Move   %[1:On;Off]s\n"
+		"[I] Isometric       %[1:On;Off]s\n"
 		"[L] Lights          %d",
 		files[modelindex],
 		zoom,
@@ -121,7 +141,7 @@ void ObjectViewer::AddOverlay(GLScene& gls)
 		trisample,
 		rimshade,
 		vignette,
-		vpmove,
+		isometric,
 		illum ? 2 : 1
 	).ToWString();
 
@@ -181,11 +201,15 @@ bool ObjectViewer::Key(dword key, int count)
 	case 'F':
 		vignette ^= 1;
 		break;
-	case 'v':
-	case 'V':
-		vpmove ^= 1;
-		if(!vpmove)
-			SizePos();
+	case 'i':
+	case 'I':
+		isometric ^= 1;
+		if(isometric) {
+			goalx = 0.0f;
+			goaly = 0.0f;
+			rotx  = 0.0f;
+			roty  = 0.0f;
+		}
 		break;
 	case K_TAB:
 		modelindex = (modelindex + 1) % files.GetCount();
@@ -237,30 +261,9 @@ void ObjectViewer::MiddleUp(Point p, dword keyflags)
 	ReleaseCapture();
 }
 
-void ObjectViewer::RightDown(Point p, dword keyflags)
-{
-	if(!vpmove)
-		return;
-
-	SetFocus();
-	vpdragstart = GetMousePos();
-	vprectstart = GetRect();
-	vpdragging = true;
-	SetCapture();
-}
-
-void ObjectViewer::RightUp(Point p, dword keyflags)
-{
-	if(vpdragging) {
-		vpdragging = false;
-		ReleaseCapture();
-	}
-}
-
 void ObjectViewer::MouseWheel(Point p, int zdelta, dword keyflags)
 {
 	goal = max(0.5f, goal - (zdelta / 100.0f));
-	Refresh();
 }
 
 void ObjectViewer::MouseMove(Point p, dword keyflags)
@@ -273,16 +276,18 @@ void ObjectViewer::MouseMove(Point p, dword keyflags)
 
 	if(panning) {
 		float s = zoom * 0.002f;
-		goalpanx += (p.x - panmouse.x) * s;
-		goalpany += (p.y - panmouse.y) * s;
-		panmouse = p;
-	}
+		float dx = (float)(p.x - panmouse.x);
+		float dy = (float)(p.y - panmouse.y);
 
-	if(vpdragging && vpmove) {
-		Point d = GetMousePos() - vpdragstart;
-		Rect r = vprectstart;
-		r.Offset(d);
-		SetRect(r);
+		if(isometric) {
+			goalpanx += (dx * 1.4142f) * s;
+			goalpany += (dy * 1.2247f - dx * 0.7071f) * s;
+		}
+		else {
+			goalpanx += dx * s;
+			goalpany += dy * s;
+		}
+		panmouse = p;
 	}
 
 	Size sz = GetSize();

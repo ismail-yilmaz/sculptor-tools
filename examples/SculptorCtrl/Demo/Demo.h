@@ -6,11 +6,21 @@
 
 namespace Upp {
 
+struct SceneModel {
+    ModelGL model;
+    Point3D pos;
+    Image   tag;
+    String  name;
+    float   gradbase = 0.0f;
+    float   gradspan = 0.0f;
+};
+
 class ObjectViewer : public SculptorCtrl {
 public:
     ObjectViewer();
 
     void            LoadModel();
+    void            LoadModels();
     void            InitScene() override;
     void            Render(GLScene& gls) override;
     void            AddOverlay(GLScene& gls);
@@ -24,8 +34,9 @@ public:
     void            MouseMove(Point p, dword keyflags) override;
 
 private:
-    ModelGL         model;
-    Vector<String>  files;
+    ModelGL           model;
+    Vector<String>    files;
+    Array<SceneModel> models;
     
     int             modelindex    = 0;
     float           zoom          = 5.0f;
@@ -51,6 +62,7 @@ private:
     bool            gradient      = false;
     bool            rimshade      = false;
     bool            isometric     = false;
+    bool            multiobject   = false;
     
     Point           mouse         = { 0, 0 };
     Point           panmouse      = { 0, 0 };

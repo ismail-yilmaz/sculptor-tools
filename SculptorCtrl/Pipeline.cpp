@@ -164,8 +164,15 @@ void GLPipeline::End(Size viewsize)
 		if(viewsize.cx <= 0 || viewsize.cy <= 0)
 			return;
 
+		// Depth sort overlays (cheap)
+        Sort(overlays, [](const auto& a, const auto& b) { return a.z > b.z; });
+
 		glDisable(GL_CULL_FACE);
-		glDisable(GL_DEPTH_TEST);
+
+		glEnable(GL_DEPTH_TEST);	// Enable depth testing so tags obey 3D mesh occlusion
+		glDepthFunc(GL_LEQUAL);		// Required so 2D HUDs at z = -1.0 pass the depth test
+		glDepthMask(GL_FALSE);		// Prevent transparent overlay quads from occluding each other
+
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -173,12 +180,12 @@ void GLPipeline::End(Size viewsize)
 		if(!overlayprog) {
 			constexpr const char* vsrc = R"(
 					#version 150 core
-					in vec2 aPos;
+					in vec3 aPos; // Upgraded to vec3
 					in vec2 aTex;
 					out vec2 vTex;
 					void main()
 					{
-						gl_Position = vec4(aPos, 0.0, 1.0);
+						gl_Position = vec4(aPos, 1.0); // Honors the Z coordinate
 						vTex = aTex;
 					}
 			)";
@@ -243,14 +250,15 @@ void GLPipeline::End(Size viewsize)
 			float y0 = 1.0f - (2.0f * ov.pos.y / viewsize.cy);
 			float x1 = (2.0f * (ov.pos.x + isz.cx) / viewsize.cx) - 1.0f;
 			float y1 = 1.0f - (2.0f * (ov.pos.y + isz.cy) / viewsize.cy);
+			float z  = ov.z;
 
 			float vertices[] = {
-				x0, y1,  0.0f, 1.0f,
-				x0, y0,  0.0f, 0.0f,
-				x1, y0,  1.0f, 0.0f,
-				x0, y1,  0.0f, 1.0f,
-				x1, y0,  1.0f, 0.0f,
-				x1, y1,  1.0f, 1.0f
+				x0, y1, z,  0.0f, 1.0f,
+				x0, y0, z,  0.0f, 0.0f,
+				x1, y0, z,  1.0f, 0.0f,
+				x0, y1, z,  0.0f, 1.0f,
+				x1, y0, z,  1.0f, 0.0f,
+				x1, y1, z,  1.0f, 1.0f
 			};
 
 			GLuint vao, vbo;
@@ -260,9 +268,9 @@ void GLPipeline::End(Size viewsize)
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STREAM_DRAW);
 
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 			glEnableVertexAttribArray(1);
 
 			glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -273,6 +281,7 @@ void GLPipeline::End(Size viewsize)
 		}
 
 		glUseProgram(0);
+		glDepthMask(GL_TRUE); // Restore depth mask
 		glEnable(GL_DEPTH_TEST);
 
 		if(culling)
@@ -348,3 +357,4 @@ GLuint GLPipeline::CompileProg(const String& vsh, const String& fsh)
 }
 
 }
+

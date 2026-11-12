@@ -188,17 +188,71 @@ void GLScene::ClearLights()
 	glpipeline.lights.Clear();
 }
 
-GLScene& GLScene::AddOverlay(const Point& pos, const Image& img)
+GLScene& GLScene::AddOverlay(const Point& pos_, const Image& img, GLScene::Overlay align, float z)
 {
+	Point pos = pos_;
+	Size isz = img.GetSize();
+
+	switch(align) {
+	case Overlay::TopCenter:
+		pos.x -= isz.cx / 2;
+		break;
+	case Overlay::TopRight:
+		pos.x -= isz.cx;
+		break;
+	case Overlay::Center:
+		pos.x -= isz.cx / 2;
+		pos.y -= isz.cy / 2;
+		break;
+	case Overlay::BottomLeft:
+		pos.y -= isz.cy;
+		break;
+	case Overlay::BottomCenter:
+		pos.x -= isz.cx / 2;
+		pos.y -= isz.cy;
+		break;
+	case Overlay::BottomRight:
+		pos.x -= isz.cx;
+		pos.y -= isz.cy;
+		break;
+	case Overlay::TopLeft:
+	default:
+		break;
+	}
+
 	GLPipeline::OverlayItem& o = glpipeline.overlays.Add();
 	o.pos = pos;
 	o.img = img;
+	o.z = z;
 	return *this;
 }
 
-GLScene& GLScene::AddOverlay(int x, int y, const Image& img)
+GLScene& GLScene::AddOverlay(int x, int y, const Image& img, GLScene::Overlay align, float z)
 {
-	return AddOverlay(Point(x, y), img);
+	return AddOverlay(Point(x, y), img, align, z);
+}
+
+GLScene& GLScene::AddOverlay(const Point3D& pos, Size viewsize, const Image& img, GLScene::Overlay align)
+{
+	MatrixGL mvp = glpipeline.projection * glpipeline.modelview;
+	Point3D ndc = pos * mvp;
+
+	if(ndc.z < -1.0f || ndc.z > 1.0f)
+		return *this;
+
+	if(ndc.x < -1.2f || ndc.x > 1.2f || ndc.y < -1.2f || ndc.y > 1.2f)
+		return *this;
+
+	int sx = (int)((ndc.x + 1.0f) * 0.5f * viewsize.cx);
+	int sy = (int)((1.0f - (ndc.y + 1.0f) * 0.5f) * viewsize.cy);
+
+	// Apply a 0.005f depth bias to prevent the quad from slicing into the mesh
+	return AddOverlay(Point(sx, sy), img, align, ndc.z - 0.005f);
+}
+
+GLScene& GLScene::AddOverlay(float x, float y, float z, Size viewsize, const Image& img, GLScene::Overlay align)
+{
+	return AddOverlay(Point3D(x, y, z), viewsize, img, align);
 }
 
 void GLScene::ClearOverlays()

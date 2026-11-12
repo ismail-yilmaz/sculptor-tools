@@ -20,6 +20,17 @@ ender()] hook, GLScene provides methods for camera projections,
 transformation matrices, lighting configuration, and drawing 
 operations.&]
 [s0; &]
+[ {{10000F(128)G(128)@1 [s0; [* Enumerators]]}}&]
+[s3; &]
+[s5;:Upp`:`:GLScene`:`:Overlay: [@(0.0.255) enum] [* Overlay] [@(0.0.255) :] 
+[@(0.0.255) int]&]
+[s2;%% This enumeration defines the anchoring behavior for image 
+overlays. It determines which point of the provided 2D image 
+aligns with the specified target coordinate, allowing for flexible 
+positioning of UI elements and dynamic 3D tags. Available enumerators 
+are as follows: [*C@5 TopLeft, TopCenter, TopRight, Center, BottomLeft, 
+BottomCenter, BottomRight]&]
+[s0; &]
 [ {{10000F(128)G(128)@1 [s0;%% [* Constructor detail]]}}&]
 [s3; &]
 [s5;:Upp`:`:GLScene`:`:GLScene`(GLPipeline`&`): [* GLScene](GLPipeline[@(0.0.255) `&] 
@@ -239,24 +250,55 @@ and [%-*@3 color]. Returns `*this for method chaining.&]
 scene.&]
 [s3; &]
 [s4; &]
-[s5;:Upp`:`:GLScene`:`:AddOverlay`(const Point`&`,const Image`&`): GLScene[@(0.0.255) `&
-] [* AddOverlay]([@(0.0.255) const] Point[@(0.0.255) `&] [*@3 pos], [@(0.0.255) const] 
-Image[@(0.0.255) `&] [*@3 img])&]
-[s2;%% Draws a 2D screen`-space image overlay at the specified pixel 
-coordinates [%-*@3 pos] over the rendered 3D scene. Returns `*this 
-for method chaining.&]
+[s5;:Upp`:`:GLScene`:`:AddOverlay`(const Point`&`,const Image`&`,Overlay`,float`): GL
+Scene[@(0.0.255) `&] [* AddOverlay]([@(0.0.255) const] Point[@(0.0.255) `&] 
+[*@3 pos], [@(0.0.255) const] Image[@(0.0.255) `&] [*@3 img], Overlay 
+[*@3 align] [@(0.0.255) `=] TopLeft, [@(0.0.255) float] [*@3 z] [@(0.0.255) `=] 
+[@(0.0.255) `-][@3 1.0])&]
+[s5;:Upp`:`:GLScene`:`:AddOverlay`(int`,int`,const Image`&`,Overlay`): GLScene[@(0.0.255) `&
+] [* AddOverlay]([@(0.0.255) int] [*@3 x], [@(0.0.255) int] [*@3 y], [@(0.0.255) const] 
+Image[@(0.0.255) `&] [*@3 img], Overlay [*@3 align] [@(0.0.255) `=] TopLeft, 
+[@(0.0.255) float] [*@3 z] [@(0.0.255) `=] [@(0.0.255) `-][@3 1.0])&]
+[s2;%% These methods append a 2D image overlay to the rendering pipeline 
+at the specified screen`-space coordinates. The target position 
+defines the exact pixel location on the viewport, while the alignment 
+parameter dictates how the image is positioned relative to that 
+coordinate. To preserve standard windowing conventions, the default 
+alignment is anchored to the top`-left pixel. The z depth parameter 
+dictates occlusion; its default value of [C@5 `-1.0f] maps directly 
+to the near`-clip plane, ensuring standard HUD elements draw 
+entirely on top of the scene. Before drawing, the pipeline automatically 
+sorts all queued overlays by this depth value. Returns `*this 
+for method chaining. See also [^topic`:`/`/SculptorCtrl`/src`/Upp`_SculptorCtrl`_GLScene`_en`-us`#Upp`:`:GLScene`:`:Overlay^ O
+verlay ]enumartors.&]
 [s3; &]
 [s4; &]
-[s5;:Upp`:`:GLScene`:`:AddOverlay`(int`,int`,const Image`&`): GLScene[@(0.0.255) `&] 
-[* AddOverlay]([@(0.0.255) int] [*@3 x], [@(0.0.255) int] [*@3 y], [@(0.0.255) const] 
-Image[@(0.0.255) `&] [*@3 img])&]
-[s2;%% Draws a 2D screen`-space image overlay at the specified pixel 
-coordinates [%-*@3 x] , and [%-*@3 y ]over the rendered 3D scene. 
-Returns `*this for method chaining.&]
+[s5;:Upp`:`:GLScene`:`:AddOverlay`(const Point3D`&`,Size`,const Image`&`,Overlay`): G
+LScene[@(0.0.255) `&] [* AddOverlay]([@(0.0.255) const] Point3D[@(0.0.255) `&] 
+[*@3 pos], Size [*@3 viewsize], [@(0.0.255) const] Image[@(0.0.255) `&] 
+[*@3 img], Overlay [*@3 align] [@(0.0.255) `=] Center)&]
+[s5;:Upp`:`:GLScene`:`:AddOverlay`(float`,float`,float`,Size`,const Image`&`,Overlay`): G
+LScene[@(0.0.255) `&] [* AddOverlay]([@(0.0.255) float] [*@3 x], [@(0.0.255) float] 
+[*@3 y], [@(0.0.255) float] [*@3 z], Size [*@3 viewsize], [@(0.0.255) const] 
+Image[@(0.0.255) `&] [*@3 img], Overlay [*@3 align] [@(0.0.255) `=] Center)&]
+[s2;%% These methods project a 3D local`-space coordinate into 2D 
+screen space and anchor an image overlay to that dynamically 
+calculated position. The target point is defined in the current 
+local coordinate system and is automatically transformed using 
+the active model`-view and projection matrices managed by the 
+scene. The viewport size parameter provides the necessary window 
+dimensions for the perspective divide and the final screen`-space 
+mapping. Points that fall outside the view frustum, or those 
+positioned behind the camera, are automatically culled and discarded. 
+The alignment parameter defaults to center alignment, making 
+it ideal for floating UI tags, data labels, or vertex markers 
+that track geometry. Returns `*this for method chaining. See 
+also [^topic`:`/`/SculptorCtrl`/src`/Upp`_SculptorCtrl`_GLScene`_en`-us`#Upp`:`:GLScene`:`:Overlay^ O
+verlay ]enumartors.&]
 [s3; &]
 [s4; &]
 [s5;:Upp`:`:GLScene`:`:ClearOverlays`(`): [@(0.0.255) void] [* ClearOverlays]()&]
-[s2;%% Removes all queued 2D screen`-space overlays.&]
+[s2;%% Removes all queued overlays.&]
 [s3; &]
 [s4; &]
 [s5;:Upp`:`:GLScene`:`:Uniform`(const String`&`,float`): [@(0.0.255) void] 

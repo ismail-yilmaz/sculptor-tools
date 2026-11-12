@@ -7,6 +7,7 @@ struct GLPipeline : Moveable<GLPipeline> {
     struct OverlayItem : Moveable<OverlayItem> {
         Image img;
         Point pos;
+        float z;
     };
 
     Vector<LightSource>               lights;

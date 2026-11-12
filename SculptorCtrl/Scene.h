@@ -1,5 +1,16 @@
 class GLScene {
 public:
+	
+	enum class Overlay {
+		TopLeft,
+		TopCenter,
+		TopRight,
+		Center,
+		BottomLeft,
+		BottomCenter,
+		BottomRight,
+	};
+	
     GLScene(GLPipeline& pipeline);
 
     GLScene&      Cull(bool b = true);
@@ -43,11 +54,13 @@ public:
     void          SetLight(const Point3D& dir, const RGBA& color);
     GLScene&      AddLight(const Point3D& dir, const RGBA& color);
     void          ClearLights();
-                            
-    GLScene&      AddOverlay(const Point& pos, const Image& img);
-    GLScene&      AddOverlay(int x, int y, const Image& img);
+
+    GLScene&      AddOverlay(const Point& pos, const Image& img, Overlay align = Overlay::TopLeft, float z = -1.0f);
+    GLScene&      AddOverlay(int x, int y, const Image& img, Overlay align = Overlay::TopLeft, float z = -1.0f);
+    GLScene&      AddOverlay(const Point3D& pos, Size viewsize, const Image& img, Overlay align = Overlay::Center);
+    GLScene&      AddOverlay(float x, float y, float z, Size viewsize, const Image& img, Overlay align = Overlay::Center);
     void          ClearOverlays();
-                            
+
     void          Uniform(const String& name, float v);
     void          Uniform(const String& name, const Point3D& v);
     void          Uniform(const String& name, const RGBA& v);

@@ -32,6 +32,7 @@ void Sculptor::Clear()
     colorbuffer.Clear();
     zbuffer.Clear();
     primitives.Clear();
+    overlays.Clear();
     matrixstack.Clear();
     matrixstack.Add(Matrix4D::Identity());
     projection = view = Matrix4D::Identity();
@@ -146,8 +147,8 @@ Sculptor& Sculptor::Rotate(float rx, float ry, float rz)
 
 Sculptor& Sculptor::Rotate(const Quaternion& q)
 {
-	matrixstack.Top() = q.GetMatrix() * matrixstack.Top();
-	return *this;
+    matrixstack.Top() = q.GetMatrix() * matrixstack.Top();
+    return *this;
 }
 
 Sculptor& Sculptor::Scale(float sx, float sy, float sz)
@@ -199,6 +200,75 @@ void Sculptor::ClearPostFilters()
 void Sculptor::SetNDCConverter(Function<Pointf(const Point3D&)> f)
 {
     toscreen = f;
+}
+
+Sculptor& Sculptor::AddOverlay(const Point& pos, const Image& img, Overlay align, float z)
+{
+    Size isz = img.GetSize();
+    Point p = pos;
+    
+    switch(align) {
+    case Overlay::TopCenter:    p.x -= isz.cx / 2; break;
+    case Overlay::TopRight:     p.x -= isz.cx; break;
+    case Overlay::CenterLeft:   p.y -= isz.cy / 2; break;
+    case Overlay::Center:       p.x -= isz.cx / 2; p.y -= isz.cy / 2; break;
+    case Overlay::CenterRight:  p.x -= isz.cx; p.y -= isz.cy / 2; break;
+    case Overlay::BottomLeft:   p.y -= isz.cy; break;
+    case Overlay::BottomCenter: p.x -= isz.cx / 2; p.y -= isz.cy; break;
+    case Overlay::BottomRight:  p.x -= isz.cx; p.y -= isz.cy; break;
+    case Overlay::TopLeft: default: break;
+    }
+    
+    OverlayItem& m = overlays.Add();
+    m.pos = p;
+    m.img = img;
+    m.align = align;
+    m.z = z;
+    
+    return *this;
+}
+
+Sculptor& Sculptor::AddOverlay(int x, int y, const Image& img, Overlay align, float z)
+{
+    return AddOverlay(Point(x, y), img, align, z);
+}
+
+Sculptor& Sculptor::AddOverlay(const Point3D& pos, Size viewsize, const Image& img, Overlay align)
+{
+    Matrix4D modelview = matrixstack.Top() * view;
+    Matrix4D mvp = modelview * projection;
+    
+    Point4D clip = Point4D(pos, 1.0) * mvp;
+    Point3D ndc = clip.ToPoint3DAffine();
+    
+    if(ndc.z < -1.0f || ndc.z > 1.0f)
+        return *this;
+        
+    if(ndc.x < -1.2f || ndc.x > 1.2f || ndc.y < -1.2f || ndc.y > 1.2f)
+        return *this;
+        
+    Pointf sp;
+    if(toscreen)
+        sp = toscreen(ndc);
+    else
+        sp = Pointf((ndc.x + 1.0f) * 0.5f * viewsize.cx, (1.0f - ndc.y) * 0.5f * viewsize.cy);
+        
+    int sx = (int)sp.x;
+    int sy = (int)sp.y;
+    
+    Point3D vp = pos * modelview;
+    
+    return AddOverlay(Point(sx, sy), img, align, vp.z - 0.05f);
+}
+
+Sculptor& Sculptor::AddOverlay(float x, float y, float z, Size viewsize, const Image& img, Overlay align)
+{
+    return AddOverlay(Point3D(x, y, z), viewsize, img, align);
+}
+
+void Sculptor::ClearOverlays()
+{
+    overlays.Clear();
 }
 
 struct ClipVert {
@@ -442,6 +512,7 @@ void Sculptor::Render(const Model3D& m)
 void Sculptor::ClearScene()
 {
     primitives.Trim(0);
+    overlays.Trim(0);
     matrixstack.Trim(0);
     matrixstack.Add(Matrix4D::Identity());
     projection = Matrix4D::Identity();
@@ -542,6 +613,49 @@ void Sculptor::Rasterize()
             RasterizeLine(size, prim.screenpos[0], prim.viewpos[0].z, prim.screenpos[1], prim.viewpos[1].z, prim.colors[0]);
             RasterizeLine(size, prim.screenpos[1], prim.viewpos[1].z, prim.screenpos[2], prim.viewpos[2].z, prim.colors[1]);
             RasterizeLine(size, prim.screenpos[2], prim.viewpos[2].z, prim.screenpos[0], prim.viewpos[0].z, prim.colors[2]);
+        }
+    }
+
+    // Process queued UI & 3D Overlays
+    Sort(overlays, [](const auto& a, const auto& b) { return a.z > b.z; });
+
+    for(const OverlayItem& ov : overlays) {
+        const Image& img = ov.img;
+        if(IsNull(img))
+            continue;
+            
+        Size isz = img.GetSize();
+        int sx = ov.pos.x;
+        int sy = ov.pos.y;
+        float z = ov.z;
+        
+        for(int y = 0; y < isz.cy; y++) {
+            int dy = sy + y;
+            if(dy < 0 || dy >= size.cy)
+                continue;
+                
+            const RGBA* sp = img[y];
+            RGBA* dp = colorbuffer[dy];
+            float* zp = &zbuffer[dy * size.cx];
+            
+            for(int x = 0; x < isz.cx; x++) {
+                int dx = sx + x;
+                if(dx < 0 || dx >= size.cx)
+                    continue;
+                    
+                if(z <= zp[dx]) {
+                    RGBA sc = sp[x];
+                    if(sc.a == 255) {
+                        dp[dx] = sc;
+                    }
+                    else if(sc.a > 0) {
+                        int inva = 255 - sc.a;
+                        dp[dx].r = (sc.r * sc.a + dp[dx].r * inva) / 255;
+                        dp[dx].g = (sc.g * sc.a + dp[dx].g * inva) / 255;
+                        dp[dx].b = (sc.b * sc.a + dp[dx].b * inva) / 255;
+                    }
+                }
+            }
         }
     }
 

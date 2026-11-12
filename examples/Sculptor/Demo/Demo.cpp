@@ -2,6 +2,20 @@
 
 using namespace Upp;
 
+Image MakeTag(const String& text)
+{
+	Font fnt = Arial(11).Bold();
+	Size tsz = GetTextSize(text, fnt);
+	Size isz = tsz + Size(12, 6);
+
+	ImagePainter p(isz);
+	p.Clear(RGBAZero());
+	p.RoundedRectangle(0, 0, isz.cx, isz.cy, 4).Fill(RGBA {20, 20, 30, 220}).Stroke(1, LtGray());
+	p.DrawText(6, 3, text, fnt, White());
+
+	return p;
+}
+
 ObjectViewer::ObjectViewer()
 {
 	Title("Sculptor Demo");
@@ -10,6 +24,7 @@ ObjectViewer::ObjectViewer()
 	files = { "teapot.obj", "skull.obj", "bunny.obj" };
 
 	LoadModel();
+	LoadModels();
 
 	SetTimeCallback(-16, [=] {
 		if(abs(goalx - rotx) > 0.001f || abs(goaly - roty) > 0.001f || abs(goal - zoom) > 0.001f) {
@@ -29,6 +44,9 @@ void ObjectViewer::SetGradient()
 		hi = Color(255, 200, 120);
 	}
 	ApplyGradient(model, lo, hi);
+	for(SceneModel& sm : models) {
+		ApplyGradient(sm.model, lo, hi);
+	}
 }
 
 void ObjectViewer::LoadModel()
@@ -39,11 +57,48 @@ void ObjectViewer::LoadModel()
 	}
 
 	model.Normalize(2.5f);
-	
+
 	SetGradient();
 	int64 tid = model.AddTexture(CreateImage(Size(1, 1), White()));
 	for(Model3D::Vertex& v : model.vertices)
 		v.textureid = tid;
+}
+
+void ObjectViewer::LoadModels()
+{
+	models.Clear();
+	float radius = 3.5f;
+
+	Color lo = White(), hi = White();
+	if(gradient) {
+		lo = Color(40, 60, 160);
+		hi = Color(255, 200, 120);
+	}
+
+	for(int i = 0; i < files.GetCount(); i++) {
+		SceneModel& sm = models.Add();
+		sm.name = GetFileTitle(files[i]);
+		sm.tag = MakeTag(sm.name);
+
+		float angle = (float)i * (float)(2.0 * M_PI / files.GetCount());
+		sm.pos = Point3D(radius * cos(angle), 0.0f, radius * sin(angle));
+
+		if(!LoadModelFromFile(sm.model, GetDataFile(files[i]))) {
+			Exclamation(Format("Could not load object file: %s", files[i]));
+			continue;
+		}
+
+		sm.model.Normalize(2.5f);
+		ApplyGradient(sm.model, lo, hi);
+
+		Box3D bounds = sm.model.ComputeBounds();
+		sm.gradbase = bounds.lo.y;
+		sm.gradspan = max(bounds.hi.y - bounds.lo.y, 0.001f);
+
+		int64 tid = sm.model.AddTexture(CreateImage(Size(1, 1), White()));
+		for(Model3D::Vertex& v : sm.model.vertices)
+			v.textureid = tid;
+	}
 }
 
 bool ObjectViewer::Key(dword key, int count)
@@ -82,6 +137,12 @@ bool ObjectViewer::Key(dword key, int count)
 	case 'F':
 		vignette ^= 1;
 		break;
+	case 'o':
+	case 'O':
+		multiobject ^= 1;
+		if(multiobject)
+			goal = max(goal, 12.0f);
+		break;
 	case K_TAB:
 		modelindex = (modelindex + 1) % files.GetCount();
 		LoadModel();
@@ -102,7 +163,6 @@ bool ObjectViewer::Key(dword key, int count)
 
 	Refresh();
 	return true;
-
 }
 
 void ObjectViewer::LeftDown(Point p, dword keyflags)
@@ -136,6 +196,7 @@ void ObjectViewer::MouseMove(Point p, dword keyflags)
 
 void ObjectViewer::PaintOverlay(Draw& w) const
 {
+	String modelname = multiobject ? "Multi-Object" : files[modelindex];
 	WString txt = Format(
 		"Model: %s\n"
 		"Zoom:  %.1f\n"
@@ -147,8 +208,9 @@ void ObjectViewer::PaintOverlay(Draw& w) const
 		"[T] Triplanar  %[1:On;Off]s\n"
 		"[P] Rim shader %[1:On;Off]s\n"
 		"[F] Vignette   %[1:On;Off]s\n"
+		"[O] Multi-Obj  %[1:On;Off]s\n"
 		"[L] Lights     %d",
-		files[modelindex],
+		modelname,
 		zoom,
 		wireframe,
 		bilinear,
@@ -157,6 +219,7 @@ void ObjectViewer::PaintOverlay(Draw& w) const
 		triplanar,
 		rim,
 		vignette,
+		multiobject,
 		illum ? 2 : 1
 	).ToWString();
 
@@ -191,7 +254,7 @@ void ObjectViewer::Paint(Draw& w)
 
 	if(illum)
 		renderer.AddLight(Point3D(-1.0f, -0.2f, -0.5f), Color(255, 50, 50));
-	
+
 	if(triplanar)
 		renderer.SetTextureSampler(TriplanarSampler);
 
@@ -200,9 +263,22 @@ void ObjectViewer::Paint(Draw& w)
 
 	if(vignette)
 		renderer.AddPostFilter(Vignette);
-	
+
 	renderer.Rotate(rotx, roty, 0);
-	renderer.Render(model);
+
+	if(multiobject) {
+		for(const SceneModel& sm : models) {
+			Sculptor::Scope __(renderer);
+			renderer.Translate(sm.pos);
+			renderer.Render(sm.model);
+			float tagy = sm.gradbase + sm.gradspan + 0.5f;
+			renderer.AddOverlay(Point3D(0.0f, tagy, 0.0f), sz, sm.tag, Sculptor::Overlay::BottomCenter);
+		}
+	}
+	else {
+		renderer.Render(model);
+	}
+
 	renderer.Rasterize();
 
 	w.DrawImage(0, 0, renderer.GetImage());

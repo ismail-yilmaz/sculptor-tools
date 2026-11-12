@@ -49,6 +49,23 @@ public:
 
 class Sculptor {
 public:
+    enum class Overlay {
+        TopLeft,
+        TopCenter,
+        TopRight,
+        CenterLeft,
+        Center,
+        CenterRight,
+        BottomLeft, BottomCenter, BottomRight
+    };
+
+    struct OverlayItem : Moveable<OverlayItem> {
+        Point   pos;
+        Image   img;
+        Overlay align;
+        float   z;
+    };
+
     struct Primitive : Moveable<Primitive> {
         Pointf               screenpos[3];
         float                inversew[3];
@@ -143,6 +160,12 @@ public:
     void                     Render(const Model3D& model);
     void                     ClearScene();
 
+    Sculptor&                AddOverlay(const Point& pos, const Image& img, Overlay align = Overlay::TopLeft, float z = -1e9f);
+    Sculptor&                AddOverlay(int x, int y, const Image& img, Overlay align = Overlay::TopLeft, float z = -1e9f);
+    Sculptor&                AddOverlay(const Point3D& pos, Size viewsize, const Image& img, Overlay align = Overlay::Center);
+    Sculptor&                AddOverlay(float x, float y, float z, Size viewsize, const Image& img, Overlay align = Overlay::Center);
+    void                     ClearOverlays();
+
     void                     Rasterize();
     
     Image                    GetImage();
@@ -150,13 +173,13 @@ public:
     
     void                     Clear();
 
-	// For convenience
-	class Scope : NoCopy {
-		Sculptor& scl;
-	public:
-		Scope(Sculptor& s) : scl(s)                                                    { scl.PushMatrix(); }
-		~Scope()                                                                       { scl.PopMatrix();  }
-	};
+    // For convenience
+    class Scope : NoCopy {
+        Sculptor& scl;
+    public:
+        Scope(Sculptor& s) : scl(s)                                                    { scl.PushMatrix(); }
+        ~Scope()                                                                       { scl.PopMatrix();  }
+    };
 
    
 private:
@@ -173,6 +196,7 @@ private:
     Matrix4D                 projection;
     Matrix4D                 view;
     Vector<Primitive>        primitives;
+    Vector<OverlayItem>      overlays;
     Function<Pointf(const Point3D&)> toscreen;
     Vector<LightSource>      lights;
     RGBA                     ambientlight;

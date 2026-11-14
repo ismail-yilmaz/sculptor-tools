@@ -204,28 +204,50 @@ void Sculptor::SetNDCConverter(Function<Pointf(const Point3D&)> f)
 
 Sculptor& Sculptor::AddOverlay(const Point& pos, const Image& img, Overlay align, float z)
 {
-    Size isz = img.GetSize();
-    Point p = pos;
-    
-    switch(align) {
-    case Overlay::TopCenter:    p.x -= isz.cx / 2; break;
-    case Overlay::TopRight:     p.x -= isz.cx; break;
-    case Overlay::CenterLeft:   p.y -= isz.cy / 2; break;
-    case Overlay::Center:       p.x -= isz.cx / 2; p.y -= isz.cy / 2; break;
-    case Overlay::CenterRight:  p.x -= isz.cx; p.y -= isz.cy / 2; break;
-    case Overlay::BottomLeft:   p.y -= isz.cy; break;
-    case Overlay::BottomCenter: p.x -= isz.cx / 2; p.y -= isz.cy; break;
-    case Overlay::BottomRight:  p.x -= isz.cx; p.y -= isz.cy; break;
-    case Overlay::TopLeft: default: break;
-    }
-    
-    OverlayItem& m = overlays.Add();
-    m.pos = p;
-    m.img = img;
-    m.align = align;
-    m.z = z;
-    
-    return *this;
+	Size isz = img.GetSize();
+	Point p = pos;
+
+	switch(align) {
+	case Overlay::TopCenter:
+		p.x -= isz.cx / 2;
+		break;
+	case Overlay::TopRight:
+		p.x -= isz.cx;
+		break;
+	case Overlay::CenterLeft:
+		p.y -= isz.cy / 2;
+		break;
+	case Overlay::Center:
+		p.x -= isz.cx / 2;
+		p.y -= isz.cy / 2;
+		break;
+	case Overlay::CenterRight:
+		p.x -= isz.cx;
+		p.y -= isz.cy / 2;
+		break;
+	case Overlay::BottomLeft:
+		p.y -= isz.cy;
+		break;
+	case Overlay::BottomCenter:
+		p.x -= isz.cx / 2;
+		p.y -= isz.cy;
+		break;
+	case Overlay::BottomRight:
+		p.x -= isz.cx;
+		p.y -= isz.cy;
+		break;
+	case Overlay::TopLeft:
+	default:
+		break;
+	}
+
+	OverlayItem& m = overlays.Add();
+	m.pos = p;
+	m.img = img;
+	m.align = align;
+	m.z = z;
+
+	return *this;
 }
 
 Sculptor& Sculptor::AddOverlay(int x, int y, const Image& img, Overlay align, float z)
@@ -233,7 +255,7 @@ Sculptor& Sculptor::AddOverlay(int x, int y, const Image& img, Overlay align, fl
     return AddOverlay(Point(x, y), img, align, z);
 }
 
-Sculptor& Sculptor::AddOverlay(const Point3D& pos, Size viewsize, const Image& img, Overlay align)
+Sculptor& Sculptor::AddOverlay(const Point3D& pos, Size viewsize, const Image& img, Overlay align, bool ztest)
 {
     Matrix4D modelview = matrixstack.Top() * view;
     Matrix4D mvp = modelview * projection;
@@ -256,19 +278,55 @@ Sculptor& Sculptor::AddOverlay(const Point3D& pos, Size viewsize, const Image& i
     int sx = (int)sp.x;
     int sy = (int)sp.y;
     
+    if(!ztest)
+        return AddOverlay(Point(sx, sy), img, align);
+
     Point3D vp = pos * modelview;
     
     return AddOverlay(Point(sx, sy), img, align, vp.z - 0.05f);
 }
 
-Sculptor& Sculptor::AddOverlay(float x, float y, float z, Size viewsize, const Image& img, Overlay align)
+Sculptor& Sculptor::AddOverlay(float x, float y, float z, Size viewsize, const Image& img, Overlay align, bool ztest)
 {
-    return AddOverlay(Point3D(x, y, z), viewsize, img, align);
+    return AddOverlay(Point3D(x, y, z), viewsize, img, align, ztest);
 }
 
 void Sculptor::ClearOverlays()
 {
     overlays.Clear();
+}
+
+Ray3D Sculptor::ScreenToRay(Point p, Size viewsize, const Matrix4D& projection, const Matrix4D& modelview)
+{
+    if(viewsize.cx <= 0 || viewsize.cy <= 0)
+        return Null;
+
+    return Ray3D::UnProject(Pointf(p), Rectf((Sizef)viewsize), projection, modelview);
+}
+
+Ray3D Sculptor::ScreenToRay(Point p, Size viewsize) const
+{
+    return ScreenToRay(p, viewsize, projection, matrixstack.Top() * view);
+}
+
+Ray3D::Hit Sculptor::Pick(Point p, Size viewsize, const Model3D& model, bool backface) const
+{
+    return model.Intersect(ScreenToRay(p, viewsize), backface);
+}
+
+Ray3D::Hit Sculptor::Pick(Point p, Size viewsize, const Model3D& model, const Matrix4D& transform, bool backface) const
+{
+    return model.Intersect(ScreenToRay(p, viewsize), transform, backface);
+}
+
+bool Sculptor::HitTest(Point p, Size viewsize, const Model3D& model, bool backface) const
+{
+    return model.HitTest(ScreenToRay(p, viewsize), backface);
+}
+
+bool Sculptor::HitTest(Point p, Size viewsize, const Model3D& model, const Matrix4D& transform, bool backface) const
+{
+    return model.HitTest(ScreenToRay(p, viewsize), transform, backface);
 }
 
 struct ClipVert {

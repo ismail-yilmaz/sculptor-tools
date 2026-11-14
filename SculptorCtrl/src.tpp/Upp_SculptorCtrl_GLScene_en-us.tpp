@@ -254,11 +254,12 @@ scene.&]
 Scene[@(0.0.255) `&] [* AddOverlay]([@(0.0.255) const] Point[@(0.0.255) `&] 
 [*@3 pos], [@(0.0.255) const] Image[@(0.0.255) `&] [*@3 img], Overlay 
 [*@3 align] [@(0.0.255) `=] TopLeft, [@(0.0.255) float] [*@3 z] [@(0.0.255) `=] 
-[@(0.0.255) `-][@3 1.0])&]
-[s5;:Upp`:`:GLScene`:`:AddOverlay`(int`,int`,const Image`&`,Overlay`): GLScene[@(0.0.255) `&
-] [* AddOverlay]([@(0.0.255) int] [*@3 x], [@(0.0.255) int] [*@3 y], [@(0.0.255) const] 
-Image[@(0.0.255) `&] [*@3 img], Overlay [*@3 align] [@(0.0.255) `=] TopLeft, 
-[@(0.0.255) float] [*@3 z] [@(0.0.255) `=] [@(0.0.255) `-][@3 1.0])&]
+[@(0.0.255) `-][@3 1e9f])&]
+[s5;:Upp`:`:GLScene`:`:AddOverlay`(int`,int`,const Image`&`,Overlay`,float`): GLScene
+[@(0.0.255) `&] [* AddOverlay]([@(0.0.255) int] [*@3 x], [@(0.0.255) int] 
+[*@3 y], [@(0.0.255) const] Image[@(0.0.255) `&] [*@3 img], Overlay [*@3 align] 
+[@(0.0.255) `=] TopLeft, [@(0.0.255) float] [*@3 z] [@(0.0.255) `=] [@(0.0.255) `-][@3 1e9f])
+&]
 [s2;%% These methods append a 2D image overlay to the rendering pipeline 
 at the specified screen`-space coordinates. The target position 
 defines the exact pixel location on the viewport, while the alignment 
@@ -273,14 +274,16 @@ for method chaining. See also [^topic`:`/`/SculptorCtrl`/src`/Upp`_SculptorCtrl`
 verlay ]enumartors.&]
 [s3; &]
 [s4; &]
-[s5;:Upp`:`:GLScene`:`:AddOverlay`(const Point3D`&`,Size`,const Image`&`,Overlay`): G
+[s5;:Upp`:`:GLScene`:`:AddOverlay`(const Point3D`&`,Size`,const Image`&`,Overlay`,bool`): G
 LScene[@(0.0.255) `&] [* AddOverlay]([@(0.0.255) const] Point3D[@(0.0.255) `&] 
 [*@3 pos], Size [*@3 viewsize], [@(0.0.255) const] Image[@(0.0.255) `&] 
-[*@3 img], Overlay [*@3 align] [@(0.0.255) `=] Center)&]
-[s5;:Upp`:`:GLScene`:`:AddOverlay`(float`,float`,float`,Size`,const Image`&`,Overlay`): G
+[*@3 img], Overlay [*@3 align] [@(0.0.255) `=] Center, [@(0.0.255) bool] 
+[*@3 ztest] [@(0.0.255) `=] [@(0.0.255) true])&]
+[s5;:Upp`:`:GLScene`:`:AddOverlay`(float`,float`,float`,Size`,const Image`&`,Overlay`,bool`): G
 LScene[@(0.0.255) `&] [* AddOverlay]([@(0.0.255) float] [*@3 x], [@(0.0.255) float] 
 [*@3 y], [@(0.0.255) float] [*@3 z], Size [*@3 viewsize], [@(0.0.255) const] 
-Image[@(0.0.255) `&] [*@3 img], Overlay [*@3 align] [@(0.0.255) `=] Center)&]
+Image[@(0.0.255) `&] [*@3 img], Overlay [*@3 align] [@(0.0.255) `=] Center, 
+[@(0.0.255) bool] [*@3 ztest] [@(0.0.255) `=] [@(0.0.255) true])&]
 [s2;%% These methods project a 3D local`-space coordinate into 2D 
 screen space and anchor an image overlay to that dynamically 
 calculated position. The target point is defined in the current 
@@ -299,6 +302,72 @@ verlay ]enumartors.&]
 [s4; &]
 [s5;:Upp`:`:GLScene`:`:ClearOverlays`(`): [@(0.0.255) void] [* ClearOverlays]()&]
 [s2;%% Removes all queued overlays.&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:GLScene`:`:ScreenToRay`(Point`,Size`,const MatrixGL`&`,const MatrixGL`&`): [@(0.0.255) s
+tatic] Ray3D [* ScreenToRay](Point [*@3 p], Size [*@3 viewsize], [@(0.0.255) const] 
+MatrixGL[@(0.0.255) `&] [*@3 projection], [@(0.0.255) const] MatrixGL[@(0.0.255) `&] 
+[*@3 modelview])&]
+[s2;%% Unprojects 2D viewport coordinates [%-*@3 p ]within [%-*@3 viewsize] 
+into a normalized 3D [^topic`:`/`/Xform3D`/src`/Upp`_Ray3D`_en`-us`#Upp`:`:Ray3`_^ R
+ay3D ]using the given [%-*@3 projection] and [%-*@3 modelview] matrices. 
+Returns Null if [%-*@3 viewsize] is empty or the combined matrix 
+is non`-invertible.&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:GLScene`:`:ScreenToRay`(Point`,Size`)const: Ray3D [* ScreenToRay](Point 
+[*@3 p], Size [*@3 viewsize]) [@(0.0.255) const]&]
+[s2;%% Unprojects 2D viewport coordinates [%-*@3 p] within [%-*@3 viewsize] 
+into a normalized 3D [^topic`:`/`/Xform3D`/src`/Upp`_Ray3D`_en`-us`#Upp`:`:Ray3`_^ R
+ay3D ]using the scene`'s current projection and modelview matrices. 
+Returns Null if [%-*@3 viewsize] is empty or the combined matrix 
+is non`-invertible.&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:GLScene`:`:Pick`(Point`,Size`,const ModelGL`&`,bool`)const: Hit 
+[* Pick](Point [*@3 p], Size [*@3 viewsize], [@(0.0.255) const] ModelGL[@(0.0.255) `&] 
+[*@3 model], [@(0.0.255) bool] [*@3 backface] [@(0.0.255) `=] [@(0.0.255) false]) 
+[@(0.0.255) const]&]
+[s2;%% Tests intersection of a ray cast from viewport coordinates 
+[%-*@3 p] (within [%-*@3 viewsize] ) against [%-*@3 model] in its current 
+coordinate space. Culls back`-facing triangles when [%-*@3 backface] 
+is false. Returns the closest [^topic`:`/`/Xform3D`/src`/Upp`_Ray3D`_en`-us`#Upp`:`:Ray3`_`:`:Hit^ R
+ay3D`::Hit], or Null on miss.&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:GLScene`:`:Pick`(Point`,Size`,const ModelGL`&`,const MatrixGL`&`,bool`)const: H
+it [* Pick](Point [*@3 p], Size [*@3 viewsize], [@(0.0.255) const] ModelGL[@(0.0.255) `&] 
+[*@3 model], [@(0.0.255) const] MatrixGL[@(0.0.255) `&] [*@3 transform], 
+[@(0.0.255) bool] [*@3 backface] [@(0.0.255) `=] [@(0.0.255) false]) 
+[@(0.0.255) const]&]
+[s2;%% Tests intersection of a ray cast from viewport coordinates 
+[%-*@3 p] (within [%-*@3 viewsize] ) against [%-*@3 model] transformed 
+by [%-*@3 transform]  Culls back`-facing triangles when [%-*@3 backface] 
+is false. Returns the closest [^topic`:`/`/Xform3D`/src`/Upp`_Ray3D`_en`-us`#Upp`:`:Ray3`_`:`:Hit^ R
+ay3D`::Hit] in world space, or Null if transform is non`-invertible 
+or no triangle is hit.&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:GLScene`:`:HitTest`(Point`,Size`,const ModelGL`&`,bool`)const: [@(0.0.255) b
+ool] [* HitTest](Point [*@3 p], Size [*@3 viewsize], [@(0.0.255) const] 
+ModelGL[@(0.0.255) `&] [*@3 model], [@(0.0.255) bool] [*@3 backface] 
+[@(0.0.255) `=] [@(0.0.255) false]) [@(0.0.255) const]&]
+[s2;%% Checks whether a ray cast from viewport coordinates [%-*@3 p] 
+(within [%-*@3 viewsize]) intersects any triangle of [%-*@3 model], 
+respecting [%-*@3 backface][%-  ]culling. Returns true on hit, or 
+false on miss.&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:GLScene`:`:HitTest`(Point`,Size`,const ModelGL`&`,const MatrixGL`&`,bool`)const: [@(0.0.255) b
+ool] [* HitTest](Point [*@3 p], Size [*@3 viewsize], [@(0.0.255) const] 
+ModelGL[@(0.0.255) `&] [*@3 model], [@(0.0.255) const] MatrixGL[@(0.0.255) `&] 
+[*@3 transform], [@(0.0.255) bool] [*@3 backface] [@(0.0.255) `=] [@(0.0.255) false]) 
+[@(0.0.255) const]&]
+[s2;%% Checks whether a ray cast from viewport coordinates [%-*@3 p] 
+(within [%-*@3 viewsize]) intersects any triangle of [%-*@3 model 
+]transformed by [%-*@3 transform], respecting [%-*@3 backface][%-  
+]culling. Returns true on hit, or false if transform is non`-invertible 
+or no triangle is hit.&]
 [s3; &]
 [s4; &]
 [s5;:Upp`:`:GLScene`:`:Uniform`(const String`&`,float`): [@(0.0.255) void] 

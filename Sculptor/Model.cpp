@@ -224,6 +224,99 @@ void Model3D::Normalize(float target)
 	}
 }
 
+Ray3D::Hit Model3D::Intersect(const Ray3D& ray, bool backface) const
+{
+	Ray3D::Hit best;
+	int vc = vertices.GetCount();
+	if(IsNull(ray) || vc == 0 || triangles.IsEmpty())
+		return best;
+
+	if(!ray.Intersects(ComputeBounds(), best.distance))
+		return best;
+
+	for(int i = 0; i < triangles.GetCount(); i++) {
+		const Triangle& t = triangles[i];
+		if(t.a < 0 || t.a >= vc || t.b < 0 || t.b >= vc || t.c < 0 || t.c >= vc)
+			continue;
+
+		Ray3D::Hit h = ray.IntersectTriangle(
+			vertices[t.a].position,
+			vertices[t.b].position,
+			vertices[t.c].position,
+			backface,
+			best.distance
+		);
+		if(h < best) {
+			best = h;
+			best.triangle = i;
+			Point3D n = vertices[t.a].normal * h.barycentric.x
+			          + vertices[t.b].normal * h.barycentric.y
+			          + vertices[t.c].normal * h.barycentric.z;
+			if(n.Squared() > 1e-8f)
+				best.normal = n.Normalized();
+		}
+	}
+
+	return best;
+}
+
+Ray3D::Hit Model3D::Intersect(const Ray3D& ray, const Matrix4D& transform, bool backface) const
+{
+	if(IsNull(ray) || IsNull(transform))
+		return Null;
+
+	Matrix4D inv = transform.Inverse();
+	if(IsNull(inv))
+		return Null;
+
+	Ray3D lray = ray * inv;
+	if(IsNull(lray))
+		return Null;
+
+	return Intersect(lray, backface).Transformed(transform, ray.origin);
+}
+
+bool Model3D::HitTest(const Ray3D& ray, bool backface) const
+{
+	int vc = vertices.GetCount();
+	if(IsNull(ray) || vc == 0 || triangles.IsEmpty())
+		return false;
+
+	if(!ray.Intersects(ComputeBounds()))
+		return false;
+
+	for(const Triangle& t : triangles) {
+		if(t.a < 0 || t.a >= vc || t.b < 0 || t.b >= vc || t.c < 0 || t.c >= vc)
+			continue;
+
+		if(ray.IntersectsTriangle(
+			vertices[t.a].position,
+			vertices[t.b].position,
+			vertices[t.c].position,
+			backface
+			))
+			return true;
+	}
+
+	return false;
+}
+
+bool Model3D::HitTest(const Ray3D& ray, const Matrix4D& transform, bool backface) const
+{
+	if(IsNull(ray) || IsNull(transform))
+		return false;
+
+	Matrix4D inv = transform.Inverse();
+	if(IsNull(inv))
+		return false;
+
+	Ray3D lray = ray * inv;
+	if(IsNull(lray))
+		return false;
+
+	return HitTest(lray, backface);
+}
+
 bool LoadModel(Model3D& model, const String& data)
 {
 	if(data.IsEmpty())

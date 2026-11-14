@@ -130,10 +130,10 @@ void GLPipeline::End(Size viewsize)
 			float qd[] = {
 				-1.0f,  1.0f,  0.0f, 1.0f,
 				-1.0f, -1.0f,  0.0f, 0.0f,
-				 1.0f, -1.0f,  1.0f, 0.0f,
+				1.0f, -1.0f,  1.0f, 0.0f,
 				-1.0f,  1.0f,  0.0f, 1.0f,
-				 1.0f, -1.0f,  1.0f, 0.0f,
-				 1.0f,  1.0f,  1.0f, 1.0f
+				1.0f, -1.0f,  1.0f, 0.0f,
+				1.0f,  1.0f,  1.0f, 1.0f
 			};
 			glGenVertexArrays(1, &quadvao);
 			glGenBuffers(1, &quadvbo);
@@ -164,8 +164,16 @@ void GLPipeline::End(Size viewsize)
 		if(viewsize.cx <= 0 || viewsize.cy <= 0)
 			return;
 
+		if(postprogram && fboid) {
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, fboid);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+			glBlitFramebuffer(0, 0, viewsize.cx, viewsize.cy, 0, 0, viewsize.cx, viewsize.cy, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glGetError();
+		}
+		
 		// Depth sort overlays (cheap)
-        Sort(overlays, [](const auto& a, const auto& b) { return a.z > b.z; });
+		StableSort(overlays, [](const auto& a, const auto& b) { return a.z > b.z; });
 
 		glDisable(GL_CULL_FACE);
 
@@ -250,7 +258,7 @@ void GLPipeline::End(Size viewsize)
 			float y0 = 1.0f - (2.0f * ov.pos.y / viewsize.cy);
 			float x1 = (2.0f * (ov.pos.x + isz.cx) / viewsize.cx) - 1.0f;
 			float y1 = 1.0f - (2.0f * (ov.pos.y + isz.cy) / viewsize.cy);
-			float z  = ov.z;
+			float z  = clamp(ov.z, -1.0f, 1.0f);
 
 			float vertices[] = {
 				x0, y1, z,  0.0f, 1.0f,

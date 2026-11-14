@@ -181,6 +181,47 @@ tightly encloses all vertices in the model.&]
 bounding box.&]
 [s3; &]
 [s4; &]
+[s5;:Upp`:`:ModelGL`:`:Intersect`(const Ray3D`&`,bool`)const: Hit 
+[* Intersect]([@(0.0.255) const] Ray3D[@(0.0.255) `&] [*@3 ray], [@(0.0.255) bool] 
+[*@3 backface] [@(0.0.255) `=] [@(0.0.255) false]) [@(0.0.255) const]&]
+[s2; [@N Tests intersection of ][*@3 ray ][@N against the model`'s triangles 
+in local space. Culls back`-facing triangles when ][*@3 backface] 
+[@N is false. Returns the closest ][^topic`:`/`/Xform3D`/src`/Upp`_Ray3D`_en`-us`#Upp`:`:Ray3`_`:`:Hit^@N R
+ay3D`::Hit][@N  (with interpolated surface normal and triangle index), 
+or Null if ray is Null, the mesh is empty, or no triangle is 
+hit.]&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:ModelGL`:`:Intersect`(const Ray3D`&`,const MatrixGL`&`,bool`)const: Hit 
+[* Intersect]([@(0.0.255) const] Ray3D[@(0.0.255) `&] [*@3 ray], [@(0.0.255) const] 
+MatrixGL[@(0.0.255) `&] [*@3 transform], [@(0.0.255) bool] [*@3 backface] 
+[@(0.0.255) `=] [@(0.0.255) false]) [@(0.0.255) const]&]
+[s2; [@N Tests intersection of ][*@3 ray][%%  ][@N against the model transformed 
+by ][*@3 transform][@N . Culls back`-facing triangles when ][*@3 backface][%%  
+][@N is false. Returns the closest ][^topic`:`/`/Xform3D`/src`/Upp`_Ray3D`_en`-us`#Upp`:`:Ray3`_`:`:Hit^@N R
+ay3D`::Hit][@N  in world space, or Null if ray is Null, transform 
+is non`-invertible, the mesh is empty, or no triangle is hit.]&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:ModelGL`:`:HitTest`(const Ray3D`&`,bool`)const: [@(0.0.255) bool] 
+[* HitTest]([@(0.0.255) const] Ray3D[@(0.0.255) `&] [*@3 ray], [@(0.0.255) bool] 
+[*@3 backface] [@(0.0.255) `=] [@(0.0.255) false]) [@(0.0.255) const]&]
+[s2;%% Checks whether [%-*@3 ray] intersects any triangle of the model 
+in local space, respecting [%-*@3 backface] culling. Returns true 
+on hit, or false if ray is Null, the mesh is empty, or no triangle 
+is hit .&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:ModelGL`:`:HitTest`(const Ray3D`&`,const MatrixGL`&`,bool`)const: [@(0.0.255) b
+ool] [* HitTest]([@(0.0.255) const] Ray3D[@(0.0.255) `&] [*@3 ray], [@(0.0.255) const] 
+MatrixGL[@(0.0.255) `&] [*@3 transform], [@(0.0.255) bool] [*@3 backface] 
+[@(0.0.255) `=] [@(0.0.255) false]) [@(0.0.255) const]&]
+[s2;%% Checks whether [%-*@3 ray ]intersects any triangle of the model 
+transformed by [%-*@3 transform], respecting [%-*@3 backface][%-  ]culling. 
+Returns true on hit, or false if ray is Null, transform is non`-invertible, 
+the mesh is empty, or no triangle is hit.&]
+[s3; &]
+[s4; &]
 [s5;:Upp`:`:ModelGL`:`:Compile`(`): [@(0.0.255) void] [* Compile]()&]
 [s2;%% Processes the CPU`-side geometry data, sorts triangles into 
 texture batches, and uploads the data to the GPU by generating 

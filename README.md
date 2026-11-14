@@ -56,4 +56,12 @@ The SculptorTools nest ships with ready-to-run interactive examples demonstratin
 
 <img width="1423" height="921" alt="Ekran Görüntüsü 2026-08-06 14-46-10" src="https://github.com/user-attachments/assets/bc02a6a6-72d7-4c7e-9f05-be9cc1437a01" />
 
+## Videos
+
+SculptorCtrl in action:
+
+[SculptorCtrl demo in action](https://github.com/user-attachments/assets/4ccc44a9-2f05-4cf1-a33a-cc4ffddb00e4)
+
+
+
 

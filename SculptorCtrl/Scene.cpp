@@ -232,7 +232,7 @@ GLScene& GLScene::AddOverlay(int x, int y, const Image& img, GLScene::Overlay al
 	return AddOverlay(Point(x, y), img, align, z);
 }
 
-GLScene& GLScene::AddOverlay(const Point3D& pos, Size viewsize, const Image& img, GLScene::Overlay align)
+GLScene& GLScene::AddOverlay(const Point3D& pos, Size viewsize, const Image& img, GLScene::Overlay align, bool ztest)
 {
 	MatrixGL mvp = glpipeline.projection * glpipeline.modelview;
 	Point3D ndc = pos * mvp;
@@ -246,18 +246,51 @@ GLScene& GLScene::AddOverlay(const Point3D& pos, Size viewsize, const Image& img
 	int sx = (int)((ndc.x + 1.0f) * 0.5f * viewsize.cx);
 	int sy = (int)((1.0f - (ndc.y + 1.0f) * 0.5f) * viewsize.cy);
 
+	if(!ztest)
+		return AddOverlay(Point(sx, sy), img, align, -1.0f);
+
 	// Apply a 0.005f depth bias to prevent the quad from slicing into the mesh
-	return AddOverlay(Point(sx, sy), img, align, ndc.z - 0.005f);
+	return AddOverlay(Point(sx, sy), img, align, max(-1.0f, ndc.z - 0.005f));
 }
 
-GLScene& GLScene::AddOverlay(float x, float y, float z, Size viewsize, const Image& img, GLScene::Overlay align)
+GLScene& GLScene::AddOverlay(float x, float y, float z, Size viewsize, const Image& img, GLScene::Overlay align, bool ztest)
 {
-	return AddOverlay(Point3D(x, y, z), viewsize, img, align);
+	return AddOverlay(Point3D(x, y, z), viewsize, img, align, ztest);
 }
 
 void GLScene::ClearOverlays()
 {
 	glpipeline.overlays.Clear();
+}
+
+Ray3D GLScene::ScreenToRay(Point p, Size viewsize, const MatrixGL& projection, const MatrixGL& modelview)
+{
+	return Ray3D::UnProject(Pointf(p), Rectf(Sizef(viewsize)), projection, modelview);
+}
+
+Ray3D GLScene::ScreenToRay(Point p, Size viewsize) const
+{
+	return ScreenToRay(p, viewsize, glpipeline.projection, glpipeline.modelview);
+}
+
+Ray3D::Hit GLScene::Pick(Point p, Size viewsize, const ModelGL& model, bool backface) const
+{
+	return model.Intersect(ScreenToRay(p, viewsize), backface);
+}
+
+Ray3D::Hit GLScene::Pick(Point p, Size viewsize, const ModelGL& model, const MatrixGL& transform, bool backface) const
+{
+	return model.Intersect(ScreenToRay(p, viewsize), transform, backface);
+}
+
+bool GLScene::HitTest(Point p, Size viewsize, const ModelGL& model, bool backface) const
+{
+	return model.HitTest(ScreenToRay(p, viewsize), backface);
+}
+
+bool GLScene::HitTest(Point p, Size viewsize, const ModelGL& model, const MatrixGL& transform, bool backface) const
+{
+	return model.HitTest(ScreenToRay(p, viewsize), transform, backface);
 }
 
 void GLScene::Uniform(const String& name, float v)

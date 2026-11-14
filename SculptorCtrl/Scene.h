@@ -55,11 +55,18 @@ public:
     GLScene&      AddLight(const Point3D& dir, const RGBA& color);
     void          ClearLights();
 
-    GLScene&      AddOverlay(const Point& pos, const Image& img, Overlay align = Overlay::TopLeft, float z = -1.0f);
-    GLScene&      AddOverlay(int x, int y, const Image& img, Overlay align = Overlay::TopLeft, float z = -1.0f);
-    GLScene&      AddOverlay(const Point3D& pos, Size viewsize, const Image& img, Overlay align = Overlay::Center);
-    GLScene&      AddOverlay(float x, float y, float z, Size viewsize, const Image& img, Overlay align = Overlay::Center);
+    GLScene& AddOverlay(const Point& pos, const Image& img, Overlay align = Overlay::TopLeft, float z = -1e9f);
+    GLScene& AddOverlay(int x, int y, const Image& img, Overlay align = Overlay::TopLeft, float z = -1e9f);
+    GLScene& AddOverlay(const Point3D& pos, Size viewsize, const Image& img, Overlay align = Overlay::Center, bool ztest = true);
+    GLScene& AddOverlay(float x, float y, float z, Size viewsize, const Image& img, Overlay align = Overlay::Center, bool ztest = true);
     void          ClearOverlays();
+
+    static Ray3D  ScreenToRay(Point p, Size viewsize, const MatrixGL& projection, const MatrixGL& modelview);
+    Ray3D         ScreenToRay(Point p, Size viewsize) const;
+    Ray3D::Hit    Pick(Point p, Size viewsize, const ModelGL& model, bool backface = false) const;
+    Ray3D::Hit    Pick(Point p, Size viewsize, const ModelGL& model, const MatrixGL& transform, bool backface = false) const;
+    bool          HitTest(Point p, Size viewsize, const ModelGL& model, bool backface = false) const;
+    bool          HitTest(Point p, Size viewsize, const ModelGL& model, const MatrixGL& transform, bool backface = false) const;
 
     void          Uniform(const String& name, float v);
     void          Uniform(const String& name, const Point3D& v);

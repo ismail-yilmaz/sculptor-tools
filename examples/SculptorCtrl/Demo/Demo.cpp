@@ -2,6 +2,8 @@
 
 using namespace Upp;
 
+constexpr float DEGRAD = (float)(M_PI / 180.0);
+
 Image MakeTag(const String& text)
 {
 	Font fnt = Arial(11).Bold();
@@ -10,9 +12,68 @@ Image MakeTag(const String& text)
 
 	ImagePainter p(isz);
 	p.Clear(RGBAZero());
-	p.RoundedRectangle(0, 0, isz.cx, isz.cy, 4).Fill(RGBA {20, 20, 30, 220 }).Stroke(1, LtGray());
+	p.RoundedRectangle(0, 0, isz.cx, isz.cy, 4)
+	.Fill(RGBA { 20, 20, 30, 220 })
+	.Stroke(1, LtGray());
 	p.DrawText(6, 3, text, fnt, White());
 
+	return p;
+}
+
+Image MakeHoverTag(const String& name, const ModelGL& m, const Ray3D::Hit& hit, bool picked)
+{
+	Font titlefnt = Arial(11).Bold();
+	Font infofnt = Monospace(10);
+
+	String status = picked ? " [Pick]" : " [Hover]";
+	String info;
+	info << Format("Tri #%d (d=%.2f)\n", hit.triangle, hit.distance);
+	if(hit.triangle >= 0 && hit.triangle < m.triangles.GetCount()) {
+		const ModelGL::Triangle& t = m.triangles[hit.triangle];
+		info << Format("Verts: %d, %d, %d\n", t.a, t.b, t.c);
+	}
+	info << Format("Pos:   %.2f, %.2f, %.2f\n", hit.point.x, hit.point.y, hit.point.z)
+		<< Format("Norm:  %.2f, %.2f, %.2f", hit.normal.x, hit.normal.y, hit.normal.z);
+
+	Vector<String> lns = Split(info, '\n');
+
+	Size namesz = GetTextSize(name, titlefnt);
+	int w = namesz.cx + GetTextSize(status, titlefnt).cx;
+	for(const String& ln : lns)
+		w = max(w, GetTextSize(ln, infofnt).cx);
+
+	int titleh = titlefnt.GetCy();
+	int h = titleh + 5 + lns.GetCount() * infofnt.GetCy();
+	Size isz(w + 12, h + 12);
+
+	RGBA accent = picked ? LtGreen() : LtGray();
+	RGBA textcol = picked ? Color(255, 225, 160) : LtGray();
+
+	ImagePainter p(isz);
+	p.Clear(RGBAZero());
+	p.RoundedRectangle(0, 0, isz.cx, isz.cy, 4)
+	.Fill(RGBA { 24, 28, 42, 235 })
+	.Stroke(1, accent);
+	p.DrawText(6, 3, name, titlefnt, White());
+	p.DrawText(6 + namesz.cx, 3, status, titlefnt, accent);
+
+	int y = 6 + titleh + 2;
+	for(const String& ln : lns) {
+		p.DrawText(6, y, ln, infofnt, textcol);
+		y += infofnt.GetCy();
+	}
+
+	return p;
+}
+
+Image MakeHitMarker(Color accent)
+{
+	RGBA r = accent; r.a = 255;
+	ImagePainter p(16, 16);
+	p.Clear(RGBAZero());
+	p.Circle(8, 8, 6).Stroke(2, RGBA { 20, 20, 30, 220 });
+	p.Circle(8, 8, 5).Stroke(1.5, r);
+	p.Circle(8, 8, 2).Fill(White());
 	return p;
 }
 
@@ -20,6 +81,8 @@ ObjectViewer::ObjectViewer()
 {
 	WantFocus();
 	files = { "teapot.obj", "skull.obj", "bunny.obj" };
+	hovermarker = MakeHitMarker(Color(130, 210, 255));
+	pickmarker = MakeHitMarker(Color(255, 200, 120));
 
 	SetTimeCallback(-16, [=] {
 		bool redraw = false;
@@ -29,7 +92,7 @@ ObjectViewer::ObjectViewer()
 		|| abs(goal - zoom) > 0.001f
 		|| abs(goalpan.x - pan.x) > 0.001f
 		|| abs(goalpan.y - pan.y) > 0.001f) {
-			rot += (goalrot - rot) * 0.15f;
+			rot += (goalrot - rot) * 0.30f;
 
 			if(panning)
 				pan = goalpan;
@@ -40,8 +103,8 @@ ObjectViewer::ObjectViewer()
 			redraw = true;
 		}
 
-		if(mousenorm != prevmousenorm) {
-			prevmousenorm = mousenorm;
+		if(hoverdirty) {
+			hoverdirty = false;
 			redraw = true;
 		}
 
@@ -53,6 +116,11 @@ ObjectViewer::ObjectViewer()
 void ObjectViewer::LoadModel()
 {
 	ClearScene();
+	ClearPick();
+	hoverhit.Clear();
+	hoverindex = -1;
+	hovertag.Clear();
+	hovertagidx = -1;
 
 	if(!LoadModelFromFile(model, GetDataFile(files[modelindex]))) {
 		Exclamation(Format("Could not load object file: %s", files[modelindex]));
@@ -64,6 +132,8 @@ void ObjectViewer::LoadModel()
 	Box3D bounds = model.ComputeBounds();
 	gradbase = bounds.lo.y;
 	gradspan = max(bounds.hi.y - bounds.lo.y, 0.001f);
+	modeltagy = bounds.hi.y + 0.5f;
+	modeltag = MakeTag(GetFileTitle(files[modelindex]));
 
 	int64 tid = model.AddTexture(CreateImage(Size(1, 1), White()));
 	for(ModelGL::Vertex& v : model.vertices)
@@ -111,73 +181,140 @@ void ObjectViewer::InitScene()
 	SetPostProcess(pixelshader);
 }
 
-void ObjectViewer::Render(GLScene& gls)
+MatrixGL ObjectViewer::GetModelTransform() const
 {
-	Sizef sz = GetSize();
+	return MatrixGL::Rotation(rot.x * DEGRAD, rot.y * DEGRAD, 0.0f);
+}
 
-	gls.ClearBuffer(Color(100, 115, 200));
+MatrixGL ObjectViewer::GetModelTransform(int index) const
+{
+	return MatrixGL::Rotation(rot.x * DEGRAD, rot.y * DEGRAD, 0.0f) * MatrixGL::Translation(models[index].pos);
+}
 
-	gls.Cull(!wireframe && !xray)
-	.Wireframe(wireframe)
-	.Shading(true)
-	.Bilinear(bilinear)
-	.MipMap(mipmap)
-	.AlphaBlend(alphablend);
+void ObjectViewer::UpdateHover(const GLScene& gls, Size sz)
+{
+	if(dragging || panning || sz.cx <= 0 || sz.cy <= 0 || !Rect(sz).Contains(mouse)) {
+		hoverindex = -1;
+		hoverhit.Clear();
+		pickpending = false;
+		return;
+	}
 
-	if(isometric) {
-		gls.Isometric(zoom, sz.cx / sz.cy, -1000.0f, 1000.0f);
-		gls.LookAt(Point3D(pan.x, pan.y, 0.0f), Point3D(pan.x, pan.y, -1.0f), Point3D(0, 1, 0));
+	bool backface = wireframe || xray;
+	if(multiobject) {
+		int bestidx = -1;
+		Ray3D::Hit besthit;
+		for(int i = 0; i < models.GetCount(); i++) {
+			Ray3D::Hit hit = gls.Pick(mouse, sz, models[i].model, GetModelTransform(i), backface);
+			if(hit < besthit) {
+				besthit = hit;
+				bestidx = i;
+			}
+		}
+		hoverindex = bestidx;
+		hoverhit = besthit;
 	}
 	else {
-		gls.Perspective(M_PI / 3.0f, sz.cx / sz.cy, 0.1f, 1000.0f);
-		gls.LookAt(Point3D(pan.x, pan.y, zoom), Point3D(pan.x, pan.y, 0.0f), Point3D(0, 1, 0));
+		hoverhit = gls.Pick(mouse, sz, model, GetModelTransform(), backface);
+		hoverindex = hoverhit ? modelindex : -1;
 	}
 
-	gls.ClearLights();
-	gls.AddLight(Point3D(0.6f, 1.0f, 0.5f), White());
-	if(illum)
-		gls.AddLight(Point3D(-1.0f, -0.2f, -0.5f), Color(255, 50, 50));
+	if(pickpending) {
+		pickpending = false;
+		if(hoverhit) {
+			pickhit = hoverhit;
+			pickindex = hoverindex;
+		}
+		else {
+			pickhit.Clear();
+			pickindex = -1;
+		}
+		hovertag.Clear();
+		hovertagidx = -1;
+	}
+}
 
-	gls.UseShader("model-shader");
+void ObjectViewer::PickAt(Point p)
+{
+	mouse = p;
+	pickpending = true;
+	Refresh();
+}
 
-	gls.Uniform("uUseGradient", gradient ? 1.0f : 0.0f);
-	gls.Uniform("uGradBase", gradbase);
-	gls.Uniform("uGradSpan", gradspan);
-	gls.Uniform("uColorLo", colorlo);
-	gls.Uniform("uColorHi", colorhi);
-	gls.Uniform("uTriSample", trisample ? 1.0f : 0.0f);
-	gls.Uniform("uRimShade", rimshade ? 1.0f : 0.0f);
-	gls.Uniform("uVignette", vignette ? 1.0f : 0.0f);
-	gls.Uniform("uAlphaBase", alphablend ? 0.4f : 1.0f);
-	gls.Uniform("uXRay", xray ? 1.0f : 0.0f);
+void ObjectViewer::ClearPick()
+{
+	pickpending = false;
+	if(!pickhit && pickindex == -1)
+		return;
 
-	gls.Uniform("uMouseUV", Point3D(mousenorm.x, mousenorm.y, 0.0f));
-	gls.Uniform("uResolution", Point3D(sz.cx, sz.cy, 0.0f));
+	pickhit.Clear();
+	pickindex = -1;
+	hovertag.Clear();
+	hovertagidx = -1;
+	Refresh();
+}
 
-	AddOverlay(gls);
+Image ObjectViewer::GetHoverTag(int index, const String& name, const ModelGL& m, const Ray3D::Hit& hit, bool picked)
+{
+	if(!IsNull(hovertag)
+	&& hovertagidx == index
+	&& hovertagtri == hit.triangle
+	&& hovertagpicked == picked
+	&& abs(hit.distance - hovertagdist) < 0.005f
+	&& !IsNull(hovertagpos) && IsEpsqual(hit.point, hovertagpos, 0.005f)
+	&& !IsNull(hovertagnorm) && IsEpsqual(hit.normal, hovertagnorm, 0.005f))
+		return hovertag;
 
-	gls.Rotate(rot.x, rot.y, 0);
+	hovertagidx = index;
+	hovertagtri = hit.triangle;
+	hovertagpicked = picked;
+	hovertagdist = hit.distance;
+	hovertagpos = hit.point;
+	hovertagnorm = hit.normal;
+	hovertag = MakeHoverTag(name, m, hit, picked);
+	return hovertag;
+}
+
+void ObjectViewer::RenderScene(GLScene& gls, Sizef sz)
+{
+	GLScene::Scope __(gls);
+	gls.Rotate(rot.x * DEGRAD, rot.y * DEGRAD, 0.0f);
 
 	if(multiobject) {
-		for(SceneModel& sm : models) {
-			GLScene::Scope __(gls);
+		for(int i = 0; i < models.GetCount(); i++) {
+			SceneModel& sm = models[i];
+			GLScene::Scope ___(gls);
 			gls.Translate(sm.pos);
 			gls.Uniform("uGradBase", sm.gradbase);
 			gls.Uniform("uGradSpan", sm.gradspan);
 			gls.Render(sm.model);
 			float tagy = sm.gradbase + sm.gradspan + 0.5f;
-			gls.AddOverlay(Point3D(0.0f, tagy, 0.0f), sz, sm.tag, GLScene::Overlay::TopCenter);
+			bool hovered = (i == hoverindex && hoverhit);
+			Image tag = sm.tag;
+			if(hovered) {
+				bool picked = pickhit && pickindex == i && pickhit.triangle == hoverhit.triangle;
+				tag = GetHoverTag(i, sm.name, sm.model, hoverhit, picked);
+			}
+			gls.AddOverlay(Point3D(0.0f, tagy, 0.0f), sz, tag, GLScene::Overlay::BottomCenter, !hovered);
 		}
 	}
 	else {
 		gls.Render(model);
+		bool hovered = (bool)hoverhit;
+		Image tag = modeltag;
+		if(hovered) {
+			bool picked = pickhit && pickhit.triangle == hoverhit.triangle;
+			tag = GetHoverTag(modelindex, GetFileTitle(files[modelindex]), model, hoverhit, picked);
+		}
+		gls.AddOverlay(Point3D(0.0f, modeltagy, 0.0f), sz, tag, GLScene::Overlay::BottomCenter, !hovered);
 	}
 }
 
 void ObjectViewer::AddOverlay(GLScene& gls)
 {
 	String modelname = multiobject ? "Multi-Object" : files[modelindex];
-	WString txt = Format(
+
+	String txt = Format(
 		"Model: %s\n"
 		"Zoom:  %.1f\n"
 		"==================\n"
@@ -207,19 +344,81 @@ void ObjectViewer::AddOverlay(GLScene& gls)
 		isometric,
 		multiobject,
 		illum ? 2 : 1
-	).ToWString();
+	);
 
-	constexpr int PAD = 10;
-	Size tsz = GetTLTextSize(txt, Monospace(12));
-	Size bsz = tsz + Size(PAD, PAD) * 2;
+	if(txt != hudtxt || IsNull(hudimg)) {
+		hudtxt = txt;
+		WString wtxt = txt.ToWString();
+		constexpr int PAD = 10;
+		Size tsz = GetTLTextSize(wtxt, Monospace(12));
+		Size bsz = tsz + Size(PAD, PAD) * 2;
 
-	ImagePainter w(bsz);
-	w.RoundedRectangle(0, 0, bsz.cx, bsz.cy, 8);
-	w.Fill(RGBA { 16, 16, 22, 200 });
+		ImagePainter w(bsz);
+		w.RoundedRectangle(0, 0, bsz.cx, bsz.cy, 8);
+		w.Fill(RGBA { 16, 16, 22, 200 });
 
-	DrawTLText(w, PAD, PAD, bsz.cx, txt, Monospace(12), LtGray());
+		DrawTLText(w, PAD, PAD, bsz.cx, wtxt, Monospace(12), LtGray());
+		hudimg = w;
+	}
 
-	gls.AddOverlay(GetSize().cx - bsz.cx - 12, 12, w);
+	gls.AddOverlay(GetSize().cx - hudimg.GetWidth() - 12, 12, hudimg);
+}
+
+void ObjectViewer::Render(GLScene& gls)
+{
+	Size sz = GetSize();
+	if(sz.cx <= 0 || sz.cy <= 0)
+		return;
+
+	Sizef fsz = sz;
+
+	gls.ClearBuffer(Color(100, 115, 200));
+
+	gls.Cull(!wireframe && !xray)
+	 .Wireframe(wireframe)
+	 .Shading(true)
+	 .Bilinear(bilinear)
+	 .MipMap(mipmap)
+	 .AlphaBlend(alphablend);
+
+	if(isometric) {
+		gls.Isometric(zoom, fsz.cx / fsz.cy, -1000.0f, 1000.0f);
+		gls.LookAt(Point3D(pan.x, pan.y, 0.0f), Point3D(pan.x, pan.y, -1.0f), Point3D(0, 1, 0));
+	}
+	else {
+		gls.Perspective(M_PI / 3.0f, fsz.cx / fsz.cy, 0.1f, 1000.0f);
+		gls.LookAt(Point3D(pan.x, pan.y, zoom), Point3D(pan.x, pan.y, 0.0f), Point3D(0, 1, 0));
+	}
+
+	gls.ClearLights();
+	gls.AddLight(Point3D(0.6f, 1.0f, 0.5f), White());
+	if(illum)
+		gls.AddLight(Point3D(-1.0f, -0.2f, -0.5f), Color(255, 50, 50));
+
+	gls.UseShader("model-shader");
+
+	gls.Uniform("uUseGradient", gradient ? 1.0f : 0.0f);
+	gls.Uniform("uGradBase", gradbase);
+	gls.Uniform("uGradSpan", gradspan);
+	gls.Uniform("uColorLo", colorlo);
+	gls.Uniform("uColorHi", colorhi);
+	gls.Uniform("uTriSample", trisample ? 1.0f : 0.0f);
+	gls.Uniform("uRimShade", rimshade ? 1.0f : 0.0f);
+	gls.Uniform("uVignette", vignette ? 1.0f : 0.0f);
+	gls.Uniform("uAlphaBase", alphablend ? 0.4f : 1.0f);
+	gls.Uniform("uXRay", xray ? 1.0f : 0.0f);
+
+	gls.Uniform("uResolution", Point3D(fsz.cx, fsz.cy, 0.0f));
+
+	UpdateHover(gls, sz);
+	RenderScene(gls, fsz);
+
+	if(hoverhit) {
+		bool picked = pickhit && pickindex == hoverindex && pickhit.triangle == hoverhit.triangle;
+		gls.AddOverlay(hoverhit.point, fsz, picked ? pickmarker : hovermarker, GLScene::Overlay::Center, false);
+	}
+
+	AddOverlay(gls);
 }
 
 bool ObjectViewer::Key(dword key, int count)
@@ -275,10 +474,14 @@ bool ObjectViewer::Key(dword key, int count)
 	case 'o':
 	case 'O':
 		multiobject ^= 1;
+		ClearPick();
 		break;
 	case K_TAB:
 		modelindex = (modelindex + 1) % files.GetCount();
 		LoadModel();
+		break;
+	case K_ESCAPE:
+		ClearPick();
 		break;
 	case K_UP:
 	case K_ADD:
@@ -301,7 +504,7 @@ bool ObjectViewer::Key(dword key, int count)
 void ObjectViewer::LeftDown(Point p, dword keyflags)
 {
 	SetFocus();
-	mouse = p;
+	mouse = clickmouse = p;
 	dragging = true;
 	SetCapture();
 }
@@ -310,6 +513,14 @@ void ObjectViewer::LeftUp(Point p, dword keyflags)
 {
 	dragging = false;
 	ReleaseCapture();
+
+	if(abs(p.x - clickmouse.x) <= 3 && abs(p.y - clickmouse.y) <= 3) {
+		PickAt(p);
+	}
+	else {
+		mouse = p;
+		Refresh();
+	}
 }
 
 void ObjectViewer::MiddleDown(Point p, dword keyflags)
@@ -317,31 +528,42 @@ void ObjectViewer::MiddleDown(Point p, dword keyflags)
 	SetFocus();
 	panmouse = p;
 	panning = true;
+	hoverindex = -1;
+	hoverhit.Clear();
 	SetCapture();
+	Refresh();
 }
 
 void ObjectViewer::MiddleUp(Point p, dword keyflags)
 {
 	pan = goalpan;
+	mouse = p;
 	panning = false;
 	ReleaseCapture();
+	Refresh();
 }
 
 void ObjectViewer::MouseWheel(Point p, int zdelta, dword keyflags)
 {
 	goal = max(0.5f, goal - (zdelta / 100.0f));
+	Refresh();
 }
 
 void ObjectViewer::MouseMove(Point p, dword keyflags)
 {
+	Size sz = GetSize();
+
 	if(dragging) {
 		Pointf d((float)(p.x - mouse.x), (float)(p.y - mouse.y));
-		goalrot.y -= d.x * 0.15f;
-		goalrot.x += d.y * 0.15f;
-		mouse = p;
+		goalrot.y -= d.x * 0.5f;
+		goalrot.x += d.y * 0.5f;
+		if((abs(p.x - clickmouse.x) > 3 || abs(p.y - clickmouse.y) > 3) && (hoverindex >= 0 || hoverhit)) {
+			hoverindex = -1;
+			hoverhit.Clear();
+		}
 	}
 
-	Size sz = GetSize();
+	mouse = p;
 
 	// Here we convert screen-space mouse movement into world-space pan. Unlike perspective
 	// mode, the isometric projection rotates the view by -45 degree around Y and 35.264 degree
@@ -358,7 +580,7 @@ void ObjectViewer::MouseMove(Point p, dword keyflags)
 	if(panning) {
 		Pointf d((float)(p.x - panmouse.x), (float)(p.y - panmouse.y));
 		if(isometric && sz.cx > 0) {
-			const float pitch = 35.264f * (float)(M_PI / 180.0);
+			const float pitch = 35.264f * DEGRAD;
 			const float s = 2.0f * zoom / sz.cx;
 
 			goalpan.x += (1.41421356f * d.x - tan(pitch) * d.y) * s;
@@ -372,10 +594,26 @@ void ObjectViewer::MouseMove(Point p, dword keyflags)
 		panmouse = p;
 	}
 
-	if(sz.cx > 0 && sz.cy > 0) {
-		mousenorm.x = (float)p.x / sz.cx;
-		mousenorm.y = 1.0f - ((float)p.y / sz.cy);
+	if(!dragging && !panning)
+		hoverdirty = true;
+}
+
+void ObjectViewer::MouseLeave()
+{
+	mouse = Point(-1, -1);
+	hoverdirty = false;
+	if(hoverindex >= 0 || hoverhit) {
+		hoverindex = -1;
+		hoverhit.Clear();
+		Refresh();
 	}
+}
+
+Image ObjectViewer::CursorImage(Point p, dword keyflags)
+{
+	if(!dragging && !panning && hoverhit)
+		return Image::Hand();
+	return SculptorCtrl::CursorImage(p, keyflags);
 }
 
 GUI_APP_MAIN

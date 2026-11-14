@@ -43,6 +43,11 @@ public:
     Model3D&                        AddSphere(float radius, int slices, int stacks, int64 tid = 0);
     Box3D                           ComputeBounds() const;
     Point3D                         GetCenter() const;
+
+    Ray3D::Hit                      Intersect(const Ray3D& ray, bool backface = false) const;
+    Ray3D::Hit                      Intersect(const Ray3D& ray, const Matrix4D& transform, bool backface = false) const;
+    bool                            HitTest(const Ray3D& ray, bool backface = false) const;
+    bool                            HitTest(const Ray3D& ray, const Matrix4D& transform, bool backface = false) const;
     
     Model3D();
 };
@@ -162,10 +167,16 @@ public:
 
     Sculptor&                AddOverlay(const Point& pos, const Image& img, Overlay align = Overlay::TopLeft, float z = -1e9f);
     Sculptor&                AddOverlay(int x, int y, const Image& img, Overlay align = Overlay::TopLeft, float z = -1e9f);
-    Sculptor&                AddOverlay(const Point3D& pos, Size viewsize, const Image& img, Overlay align = Overlay::Center);
-    Sculptor&                AddOverlay(float x, float y, float z, Size viewsize, const Image& img, Overlay align = Overlay::Center);
+    Sculptor&                AddOverlay(const Point3D& pos, Size viewsize, const Image& img, Overlay align = Overlay::Center, bool ztest = true);
+    Sculptor&                AddOverlay(float x, float y, float z, Size viewsize, const Image& img, Overlay align = Overlay::Center, bool ztest = true);
     void                     ClearOverlays();
 
+    static Ray3D             ScreenToRay(Point p, Size viewsize, const Matrix4D& projection, const Matrix4D& modelview);
+    Ray3D                    ScreenToRay(Point p, Size viewsize) const;
+    Ray3D::Hit               Pick(Point p, Size viewsize, const Model3D& model, bool backface = false) const;
+    Ray3D::Hit               Pick(Point p, Size viewsize, const Model3D& model, const Matrix4D& transform, bool backface = false) const;
+    bool                     HitTest(Point p, Size viewsize, const Model3D& model, bool backface = false) const;
+    bool                     HitTest(Point p, Size viewsize, const Model3D& model, const Matrix4D& transform, bool backface = false) const;
     void                     Rasterize();
     
     Image                    GetImage();

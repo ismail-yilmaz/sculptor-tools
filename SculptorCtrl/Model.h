@@ -47,6 +47,11 @@ public:
     ModelGL&                 AddSphere(float radius, int slices, int stacks, int64 tid = 0);
     Box3D                    ComputeBounds() const;
     Point3D                  GetCenter() const                            { return ComputeBounds().Center(); }
+
+    Ray3D::Hit               Intersect(const Ray3D& ray, bool backface = false) const;
+    Ray3D::Hit               Intersect(const Ray3D& ray, const MatrixGL& transform, bool backface = false) const;
+    bool                     HitTest(const Ray3D& ray, bool backface = false) const;
+    bool                     HitTest(const Ray3D& ray, const MatrixGL& transform, bool backface = false) const;
                              
     void                     Compile();
     GLuint                   GetVAO();

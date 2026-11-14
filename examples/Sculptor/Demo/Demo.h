@@ -19,43 +19,72 @@ class ObjectViewer : public TopWindow {
 public:
     ObjectViewer();
     
-    void LoadModel();
-    void LoadModels();
-    void SetGradient();
-    
-    bool Key(dword key, int count) override;
-    void LeftDown(Point p, dword keyflags) override;
-    void LeftUp(Point p, dword keyflags) override;
-    void MouseWheel(Point p, int zdelta, dword keyflags) override;
-    void MouseMove(Point p, dword keyflags) override;
+    void     LoadModel();
+    void     LoadModels();
+    void     SetGradient();
 
-    void PaintOverlay(Draw& w) const;
-    void Paint(Draw& w) override;
+    Matrix4D GetModelTransform() const;
+    Matrix4D GetModelTransform(int index) const;
+    bool     UpdateHover();
+    void     PickAt(Point p);
+    void     ClearPick();
+    Image    GetHoverTag(int index, const String& name, const Model3D& m, const Ray3D::Hit& hit, bool picked);
+    void     RenderScene(Size sz);
+    
+    bool     Key(dword key, int count) override;
+    void     LeftDown(Point p, dword keyflags) override;
+    void     LeftUp(Point p, dword keyflags) override;
+    void     MouseWheel(Point p, int zdelta, dword keyflags) override;
+    void     MouseMove(Point p, dword keyflags) override;
+    void     MouseLeave() override;
+    Image    CursorImage(Point p, dword keyflags) override;
+
+    void     PaintOverlay(Draw& w) const;
+    void     Paint(Draw& w) override;
 
 private:
     Sculptor          renderer;
     Model3D           model;
+    Image             modeltag;
+    Image             hovermarker;
+    Image             pickmarker;
+    Image             hovertag;
+    mutable Image     hudimg;
+    mutable String    hudtxt;
     Vector<String>    files;
     Array<SceneModel> models;
 
-    int       modelindex  = 0;
-    float     zoom        = 5.0f;
-    float     goal        = 5.0f;
-    float     rotx        = 0.0f;
-    float     roty        = 0.0f;
-    float     goalx       = 0.0f;
-    float     goaly       = 0.0f;
-    bool      wireframe   = false;
-    bool      bilinear    = true;
-    bool      mipmap      = true;
-    bool      gradient    = false;
-    bool      illum       = true;
-    bool      triplanar   = false;
-    bool      rim         = false;
-    bool      vignette    = false;
-    bool      dragging    = false;
-    bool      multiobject = false;
-    Point     mouse       = Point(0, 0);
+    Ray3D::Hit        hoverhit;
+    Ray3D::Hit        pickhit;
+    Point3D           hovertagpos    = Null;
+    Point3D           hovertagnorm   = Null;
+
+    int               modelindex     = 0;
+    int               hoverindex     = -1;
+    int               pickindex      = -1;
+    int               hovertagidx    = -1;
+    int               hovertagtri    = -1;
+    float             hovertagdist   = -1.0f;
+    bool              hovertagpicked = false;
+    float             modeltagy      = 0.0f;
+    float             zoom           = 5.0f;
+    float             goal           = 5.0f;
+    float             rotx           = 0.0f;
+    float             roty           = 0.0f;
+    float             goalx          = 0.0f;
+    float             goaly          = 0.0f;
+    bool              wireframe      = false;
+    bool              bilinear       = true;
+    bool              mipmap         = true;
+    bool              gradient       = false;
+    bool              illum          = true;
+    bool              triplanar      = false;
+    bool              rim            = false;
+    bool              vignette       = false;
+    bool              dragging       = false;
+    bool              multiobject    = false;
+    Point             mouse          = Point(-1, -1);
+    Point             clickmouse     = Point(-1, -1);
 };
 
 // Shaders and post-processors

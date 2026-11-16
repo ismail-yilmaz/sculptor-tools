@@ -8,20 +8,6 @@ using namespace Upp;
 
 struct AsteroidsEngine : SculptorCtrl {
 
-	AsteroidsEngine();
-	
-	void             BuildModels();
-	void             SpawnAsteroids(int count);
-	void             WrapPosition(Pointf& p);
-	void             Update();
-	
-	void             Render(GLScene& gls) final;
-	void             RenderShip(GLScene& gls);
-	void             RenderBullet(GLScene& gls);
-	void             RenderAsteroids(GLScene& gls);
-	
-	bool             Key(dword key, int count) final;
-	
     struct Bullet : Moveable<Bullet> {
         Pointf       position;
         Pointf       velocity;
@@ -37,12 +23,32 @@ struct AsteroidsEngine : SculptorCtrl {
         float        radius;
     };
 
+    AsteroidsEngine();
+    
+    void             BuildModels();
+    void             SpawnAsteroids(int count);
+    bool             WrapPosition(Pointf& p);
+    MatrixGL         GetAsteroidTransform(const Asteroid& a) const;
+    void             UpdateTarget();
+    void             Update();
+    
+    void             Render(GLScene& gls) final;
+    void             RenderShip(GLScene& gls);
+    void             RenderBullet(GLScene& gls);
+    void             RenderAsteroids(GLScene& gls);
+    
+    bool             Key(dword key, int count) final;
+
     ModelGL          shipmodel;
     ModelGL          asteroidmodel;
+    ModelGL          targetmodel;
     ModelGL          bulletmodel;
 
     Vector<Bullet>   bullets;
     Vector<Asteroid> asteroids;
+
+    Ray3D::Hit       targethit;
+    int              targetindex;
 
     Pointf           shipposition;
     Pointf           shipvelocity;

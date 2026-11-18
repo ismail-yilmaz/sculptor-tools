@@ -28,13 +28,23 @@ SculptorCtrl::SculptorCtrl(int depthbits, int stencilbits, bool doublebuffer, in
 
 void SculptorCtrl::SetShader(const String& name, const String& vshader, const String& fshader)
 {
+	SetShader(name, vshader, fshader, glpipeline.IsShaderCacheEnabled());
+}
+
+void SculptorCtrl::SetShader(const String& name, const String& vshader, const String& fshader, bool cache)
+{
 	ClearShaders();
-	AddShader(name, vshader, fshader);
+	AddShader(name, vshader, fshader, cache);
 }
 
 void SculptorCtrl::AddShader(const String& name, const String& vshader, const String& fshader)
 {
-	GLuint newprg = glpipeline.CompileProg(vshader, fshader);
+	AddShader(name, vshader, fshader, glpipeline.IsShaderCacheEnabled());
+}
+
+void SculptorCtrl::AddShader(const String& name, const String& vshader, const String& fshader, bool cache)
+{
+	GLuint newprg = glpipeline.CompileProg(vshader, fshader, cache);
 	if(!newprg)
 		return;
 
@@ -72,6 +82,11 @@ void SculptorCtrl::ClearShaders()
 
 void SculptorCtrl::SetPostProcess(const String& fsh)
 {
+	SetPostProcess(fsh, glpipeline.IsShaderCacheEnabled());
+}
+
+void SculptorCtrl::SetPostProcess(const String& fsh, bool cache)
+{
 	ClearPostProcess();
 	
 	constexpr const char *vsh = R"(
@@ -86,7 +101,7 @@ void SculptorCtrl::SetPostProcess(const String& fsh)
 		}
 	)";
 
-	glpipeline.postprogram = glpipeline.CompileProg(vsh, fsh);
+	glpipeline.postprogram = glpipeline.CompileProg(vsh, fsh, cache);
 }
 
 void SculptorCtrl::ClearPostProcess()

@@ -65,6 +65,84 @@ Enabled by default.&]
 samples for anti`-aliasing. Default value is 1.&]
 [s3; &]
 [s4; &]
+[s5;:Upp`:`:SculptorCtrl`:`:SetDefaultShaderCache`(const String`&`): [@(0.0.255) static
+] [@(0.0.255) void] [* SetDefaultShaderCache]([@(0.0.255) const] String[@(0.0.255) `&] 
+[*@3 dir])&]
+[s2;%% Sets the default directory directory used to store cached 
+OpenGL shader program binaries across all SculptorCtrl instances. 
+Passing a valid directory path enables the default shader cache; 
+passing an empty string disables it.&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:SculptorCtrl`:`:GetDefaultShaderCache`(`): [@(0.0.255) static] 
+String [* GetDefaultShaderCache]()&]
+[s2;%% Returns the configured default shader cache directory, or 
+an empty String if none has been explicitly set.&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:SculptorCtrl`:`:EnableDefaultShaderCache`(bool`): [@(0.0.255) static] 
+[@(0.0.255) void] [* EnableDefaultShaderCache]([@(0.0.255) bool] [*@3 b] 
+[@(0.0.255) `=] [@(0.0.255) true])&]
+[s2;%% Enables or disables persistent disk caching of compiled shader 
+binaries by default across all SculptorCtrl instances. When enabled 
+without an explicit directory, [C@5 tmp/SculptorCtrlShaderCache] 
+directory is used.&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:SculptorCtrl`:`:DisableDefaultShaderCache`(`): [@(0.0.255) static] 
+[@(0.0.255) void] [* DisableDefaultShaderCache]()&]
+[s2;%% Disables persistent disk caching of compiled shader binaries 
+by default across all SculptorCtrl instances.&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:SculptorCtrl`:`:IsDefaultShaderCacheEnabled`(`): [@(0.0.255) static] 
+[@(0.0.255) bool] [* IsDefaultShaderCacheEnabled]()&]
+[s2;%% Returns true if default shader binary caching is enabled.&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:SculptorCtrl`:`:ClearDefaultShaderCache`(`): [@(0.0.255) static] 
+[@(0.0.255) void] [* ClearDefaultShaderCache]()&]
+[s2;%% Removes all cached shader binary files ([C@5 `*.bin]) from the 
+default shader cache directory.&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:SculptorCtrl`:`:SetShaderCache`(const String`&`): SculptorCtrl[@(0.0.255) `&
+] [* SetShaderCache]([@(0.0.255) const] String[@(0.0.255) `&] [*@3 dir])&]
+[s2;%% Sets an instance`-specific shader cache directory for this 
+control. Enables caching for this control when [%-*@3 dir ]is non`-empty, 
+or disables it when [%-*@3 dir ]is empty. Returns `*this for method 
+chaining.&]
+[s3;*@3 &]
+[s4; &]
+[s5;:Upp`:`:SculptorCtrl`:`:SetShaderCache`(bool`): SculptorCtrl[@(0.0.255) `&] 
+[* SetShaderCache]([@(0.0.255) bool] [*@3 b] [@(0.0.255) `=] [@(0.0.255) true])&]
+[s2;%% Enables or disables shader binary caching for this control, 
+overriding the global default setting. Returns `*this. for method 
+chaining.&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:SculptorCtrl`:`:GetShaderCache`(`)const: String [* GetShaderCache]() 
+[@(0.0.255) const]&]
+[s2;%% Returns the active shader cache directory for this control 
+(the instance`-specific directory if set, otherwise the default 
+shader cache directory).&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:SculptorCtrl`:`:IsShaderCacheEnabled`(`)const: [@(0.0.255) bool] 
+[* IsShaderCacheEnabled]() [@(0.0.255) const]&]
+[s2;%% Returns true if shader binary caching is enabled for this 
+control, resolving the instance override if set or falling back 
+to [C^topic`:`/`/SculptorCtrl`/src`/Upp`_SculptorCtrl`_en`-us`#Upp`:`:SculptorCtrl`:`:IsDefaultShaderCacheEnabled`(`)^ I
+sDefaultShaderCacheEnabled][^topic`:`/`/SculptorCtrl`/src`/Upp`_SculptorCtrl`_en`-us`#Upp`:`:SculptorCtrl`:`:IsDefaultShaderCacheEnabled`(`)^ (
+)] .&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:SculptorCtrl`:`:ClearShaderCache`(`)const: [@(0.0.255) void] 
+[* ClearShaderCache]() [@(0.0.255) const]&]
+[s2;%% Removes all cached shader binary files ([C@5 `*.bin]) from this 
+control`'s active shader cache directory.&]
+[s3; &]
+[s4; &]
 [s5;:Upp`:`:SculptorCtrl`:`:SetShader`(const String`&`,const String`&`,const String`&`): [@(0.0.255) v
 oid] [* SetShader]([@(0.0.255) const] String[@(0.0.255) `&] [*@3 name], 
 [@(0.0.255) const] String[@(0.0.255) `&] [*@3 vertshader], [@(0.0.255) const] 
@@ -76,6 +154,18 @@ binding during the render loop. [/ Note: Calling this method flushes
 any previously added shaders across all instances.]&]
 [s3; &]
 [s4; &]
+[s5;:Upp`:`:SculptorCtrl`:`:SetShader`(const String`&`,const String`&`,const String`&`,bool`): [@(0.0.255) v
+oid] [* SetShader]([@(0.0.255) const] String[@(0.0.255) `&] [*@3 name], 
+[@(0.0.255) const] String[@(0.0.255) `&] [*@3 vshader], [@(0.0.255) const] 
+String[@(0.0.255) `&] [*@3 fshader], [@(0.0.255) bool] [*@3 cache])&]
+[s2;%% Clears the shared static shader registry entirely and registers 
+this single vertex and fragment shader pair as the sole available 
+custom shader. The [%-*@3 name ]acts as a unique identifier for 
+binding during the render loop. [%-*@3 cache] flag enables or disables 
+disk binary caching for this shader regardless of the control 
+or default cache setting.&]
+[s3; &]
+[s4; &]
 [s5;:Upp`:`:SculptorCtrl`:`:AddShader`(const String`&`,const String`&`,const String`&`): [@(0.0.255) v
 oid] [* AddShader]([@(0.0.255) const] String[@(0.0.255) `&] [*@3 name], 
 [@(0.0.255) const] String[@(0.0.255) `&] [*@3 vertshader], [@(0.0.255) const] 
@@ -84,6 +174,18 @@ String[@(0.0.255) `&] [*@3 fragshader])&]
 shared static registry. The shader is only added if the specified 
 [%-*@3 name] does not already exist, preserving all previously 
 registered shaders.&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:SculptorCtrl`:`:AddShader`(const String`&`,const String`&`,const String`&`,bool`): [@(0.0.255) v
+oid] [* AddShader]([@(0.0.255) const] String[@(0.0.255) `&] [*@3 name], 
+[@(0.0.255) const] String[@(0.0.255) `&] [*@3 vshader], [@(0.0.255) const] 
+String[@(0.0.255) `&] [*@3 fshader], [@(0.0.255) bool] [*@3 cache])&]
+[s2;%% Appends a new vertex and fragment shader program pair to the 
+shared static registry. The shader is only added if the specified 
+[%-*@3 name] does not already exist, preserving all previously 
+registered shaders. [%-*@3 cache] flag enables or disables disk 
+binary caching for this shader regardless of the control or default 
+cache setting.&]
 [s3; &]
 [s4; &]
 [s5;:Upp`:`:SculptorCtrl`:`:RemoveShader`(const String`&`): [@(0.0.255) void] 
@@ -109,6 +211,19 @@ instance alters its rendering pipeline: It renders the entire
 draws a a quad using the provided fragment shader. This is ideal 
 for instance`-specific full`-screen effects like CRT distortion, 
 bloom, vignette, or color grading.&]
+[s3; &]
+[s4; &]
+[s5;:Upp`:`:SculptorCtrl`:`:SetPostProcess`(const String`&`,bool`): [@(0.0.255) void] 
+[* SetPostProcess]([@(0.0.255) const] String[@(0.0.255) `&] [*@3 fshader], 
+[@(0.0.255) bool] [*@3 cache])&]
+[s2;%% Enables a custom screen`-space GLSL fragment shader for post`-processing 
+on this specific ctrl instance. When defined, this SculptorCtrl 
+instance alters its rendering pipeline: It renders the entire 
+3D scene into an off`-screen Framebuffer Object (FBO), and then 
+draws a a quad using the provided fragment shader. This is ideal 
+for instance`-specific full`-screen effects like CRT distortion, 
+bloom, vignette, or color grading. [%-*@3 cache] flag enables or 
+disables disk binary caching for this shader.&]
 [s3; &]
 [s4; &]
 [s5;:Upp`:`:SculptorCtrl`:`:ClearPostProcess`(`): [@(0.0.255) void] 

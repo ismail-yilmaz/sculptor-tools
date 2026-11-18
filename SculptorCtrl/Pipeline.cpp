@@ -1,6 +1,6 @@
 #include "SculptorCtrl.h"
 
-#define LLOG(x) // RLOG("GLPipeline: " << x)
+#define LLOG(x)  RLOG("GLPipeline: " << x)
 
 namespace Upp {
 
@@ -8,9 +8,130 @@ GLuint GLPipeline::defprogram = 0;
 GLuint GLPipeline::postprogram = 0;
 VectorMap<String, GLuint> GLPipeline::userprograms;
 VectorMap<int64, GLuint> GLPipeline::texturecache;
+bool GLPipeline::defaultshadercache = false;
+String GLPipeline::defaultshadercachedir;
+
+namespace {
+
+String ResolveShaderCacheDir(const String& dir)
+{
+	return Nvl(dir, Nvl(GLPipeline::defaultshadercachedir, AppendFileName(GetTempDirectory(), "SculptorCtrlShaderCache")));
+}
+
+String GetShaderCachePath(const String& dir, const String& vsh, const String& fsh)
+{
+	Sha1Stream sha;
+	sha.Put(vsh); sha.Put("", 1);
+	sha.Put(fsh); sha.Put("", 1);
+
+	if(const char* vnd = (const char*) glGetString(GL_VENDOR))
+		sha.Put(vnd, (int) strlen(vnd) + 1);
+	if(const char* ren = (const char*) glGetString(GL_RENDERER))
+		sha.Put(ren, (int) strlen(ren) + 1);
+	if(const char* ver = (const char*) glGetString(GL_VERSION))
+		sha.Put(ver, (int) strlen(ver) + 1);
+	
+	return AppendFileName(ResolveShaderCacheDir(dir), sha.FinishString() + ".bin");
+}
+
+void ClearShaderCacheDir(const String& dir)
+{
+	String path = ResolveShaderCacheDir(dir);
+	if(!DirectoryExists(path))
+		return;
+
+	for(FindFile ff(AppendFileName(path, "*.bin")); ff; ff.Next())
+		if(ff.IsFile())
+			DeleteFile(ff.GetPath());
+}
+
+bool SaveProgram(Stream& s, GLuint prog)
+{
+#ifdef GL_PROGRAM_BINARY_RETRIEVABLE_HINT
+	if(!glGetProgramBinary)
+		return false;
+
+	GLint len = 0;
+	glGetProgramiv(prog, GL_PROGRAM_BINARY_LENGTH, &len);
+	if(len <= 0)
+		return false;
+
+	while(glGetError() != GL_NO_ERROR)
+		; // NOOP
+
+	Buffer<byte> buf(len);
+	GLenum fmt = 0;
+	GLsizei wrt = 0;
+	glGetProgramBinary(prog, len, &wrt, &fmt, buf);
+	if(wrt <= 0 || wrt > len || glGetError() != GL_NO_ERROR)
+		return false;
+
+	int ver = 1;
+	dword f = (dword) fmt;
+	int sz = (int) wrt;
+
+	s.Magic(0x42474353); // "SCGB"
+	s / ver;
+	s % f % sz;
+	s.SerializeRaw(buf, sz);
+	return !s.IsError();
+#else
+	return false;
+#endif
+}
+
+GLuint LoadProgram(Stream& s)
+{
+#ifdef GL_PROGRAM_BINARY_RETRIEVABLE_HINT
+	if(!glProgramBinary)
+		return 0;
+
+	int ver = 1;
+	dword fmt = 0;
+	int sz = 0;
+
+	s.Magic(0x42474353); // "SCGB"
+	s / ver;
+	if(s.IsError() || ver != 1) {
+		s.SetError();
+		return 0;
+	}
+
+	s % fmt % sz;
+	if(s.IsError() || sz <= 0 || sz > s.GetLeft()) {
+		s.SetError();
+		return 0;
+	}
+
+	Buffer<byte> buf(sz);
+	s.SerializeRaw(buf, sz);
+	if(s.IsError())
+		return 0;
+
+	while(glGetError() != GL_NO_ERROR)
+		; // NOOP
+
+	GLuint prog = glCreateProgram();
+	glProgramBinary(prog, (GLenum)fmt, buf, sz);
+
+	int pok = 0;
+	glGetProgramiv(prog, GL_LINK_STATUS, &pok);
+	if(!pok || glGetError() != GL_NO_ERROR) {
+		glDeleteProgram(prog);
+		return 0;
+	}
+
+	return prog;
+#else
+	return 0;
+#endif
+}
+
+}
 
 GLPipeline::GLPipeline()
-: curprogram(0)
+: shadercache(Null)
+, curprogram(0)
 , fboid(0)
 , fbotex(0)
 , fbodepth(0)
@@ -130,10 +251,10 @@ void GLPipeline::End(Size viewsize)
 			float qd[] = {
 				-1.0f,  1.0f,  0.0f, 1.0f,
 				-1.0f, -1.0f,  0.0f, 0.0f,
-				1.0f, -1.0f,  1.0f, 0.0f,
+				 1.0f, -1.0f,  1.0f, 0.0f,
 				-1.0f,  1.0f,  0.0f, 1.0f,
-				1.0f, -1.0f,  1.0f, 0.0f,
-				1.0f,  1.0f,  1.0f, 1.0f
+				 1.0f, -1.0f,  1.0f, 0.0f,
+				 1.0f,  1.0f,  1.0f, 1.0f
 			};
 			glGenVertexArrays(1, &quadvao);
 			glGenBuffers(1, &quadvbo);
@@ -297,16 +418,46 @@ void GLPipeline::End(Size viewsize)
 	}
 }
 
+bool GLPipeline::IsShaderCacheEnabled() const
+{
+	return IsNull(shadercache) ? defaultshadercache : (bool)shadercache;
+}
+
+void GLPipeline::ClearDefaultShaderCache()
+{
+	ClearShaderCacheDir(defaultshadercachedir);
+}
+
+void GLPipeline::ClearShaderCache() const
+{
+	ClearShaderCacheDir(shadercachedir);
+}
+
 GLuint GLPipeline::CompileProg(const String& vsh, const String& fsh)
 {
+	return CompileProg(vsh, fsh, IsNull(shadercache) ? defaultshadercache : (bool)shadercache);
+}
+
+GLuint GLPipeline::CompileProg(const String& vsh, const String& fsh, bool cache)
+{
+	String path;
+	if(cache) {
+		path = GetShaderCachePath(shadercachedir, vsh, fsh);
+		if(FileIn in(path); in) {
+			if(GLuint cached = LoadProgram(in)) {
+				LLOG("Loaded cached shader binary: " << path);
+				return cached;
+			}
+		}
+	}
+
 	GLuint vs = glCreateShader(GL_VERTEX_SHADER);
 	const char* vp = ~vsh;
 	glShaderSource(vs, 1, &vp, nullptr);
 	glCompileShader(vs);
 
 	int vok;
-	glGetShaderiv(vs, GL_COMPILE_STATUS, &vok);
-	if(!vok) {
+	if(glGetShaderiv(vs, GL_COMPILE_STATUS, &vok); !vok) {
 		char log[512];
 		glGetShaderInfoLog(vs, 512, nullptr, log);
 		LLOG("Vertex Shader Error:\n" << log);
@@ -320,8 +471,7 @@ GLuint GLPipeline::CompileProg(const String& vsh, const String& fsh)
 	glCompileShader(fs);
 
 	int fok;
-	glGetShaderiv(fs, GL_COMPILE_STATUS, &fok);
-	if(!fok) {
+	if(glGetShaderiv(fs, GL_COMPILE_STATUS, &fok); !fok) {
 		char log[512];
 		glGetShaderInfoLog(fs, 512, nullptr, log);
 		LLOG("Fragment Shader Error:\n" << log);
@@ -347,16 +497,48 @@ GLuint GLPipeline::CompileProg(const String& vsh, const String& fsh)
 	glBindAttribLocation(prog, 3, "aCol");
 	glBindAttribLocation(prog, 3, "color");
 
+#ifdef GL_PROGRAM_BINARY_RETRIEVABLE_HINT
+	bool cancache = cache && glProgramParameteri && glGetProgramBinary;
+	if(cancache) {
+		GLint nf = 0;
+		if(glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &nf); nf <= 0)
+			cancache = false;
+		else
+			glProgramParameteri(prog, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
+	}
+#else
+	bool cancache = false;
+#endif
+
 	glLinkProgram(prog);
 
 	int pok;
-	glGetProgramiv(prog, GL_LINK_STATUS, &pok);
-	if(!pok) {
+	if(glGetProgramiv(prog, GL_LINK_STATUS, &pok); !pok) {
 		char log[512];
 		glGetProgramInfoLog(prog, 512, nullptr, log);
 		LLOG("Shader Link Error:\n" << log);
 		glDeleteProgram(prog);
 		prog = 0;
+	}
+	else
+	if(cancache) {
+		RealizePath(path);
+		String tmp = path + Format(".%08x%08x.tmp", (int) Random(), (int) Random());
+		FileOut out(tmp);
+		if(out && SaveProgram(out, prog)) {
+			out.Close();
+			if(!out.IsError()) {
+				DeleteFile(path);
+				if(!FileMove(tmp, path))
+					DeleteFile(tmp);
+			}
+			else
+				DeleteFile(tmp);
+		}
+		else {
+			out.Close();
+			DeleteFile(tmp);
+		}
 	}
 
 	glDeleteShader(vs);
@@ -365,4 +547,3 @@ GLuint GLPipeline::CompileProg(const String& vsh, const String& fsh)
 }
 
 }
-

@@ -11,24 +11,29 @@ struct SceneModel {
     Point3D pos;
     Image   tag;
     String  name;
+    String  file;
     float   gradbase = 0.0f;
     float   gradspan = 0.0f;
+    float   tagy     = 0.0f;
+    bool    loaded   = false;
 };
 
 class ObjectViewer : public SculptorCtrl {
 public:
     ObjectViewer();
 
-    void     LoadModel();
-    void     LoadModels();
+    void     InitModels();
+    bool     SyncModel(int index);
+    void     SyncAllModels();
+    void     SelectModel(int index);
     void     InitScene() override;
 
-    MatrixGL GetModelTransform() const;
     MatrixGL GetModelTransform(int index) const;
     void     UpdateHover(const GLScene& gls, Size sz);
     void     PickAt(Point p);
     void     ClearPick();
-    Image    GetHoverTag(int index, const String& name, const ModelGL& m, const Ray3D::Hit& hit, bool picked);
+    Image    GetHoverTag(int index, const SceneModel& sm, const Ray3D::Hit& hit, bool picked);
+    void     RenderModel(GLScene& gls, Sizef sz, int index);
     void     RenderScene(GLScene& gls, Sizef sz);
     void     AddOverlay(GLScene& gls);
     void     Render(GLScene& gls) override;
@@ -44,15 +49,13 @@ public:
     Image    CursorImage(Point p, dword keyflags) override;
 
 private:
-    ModelGL            model;
-    Image              modeltag;
+    Array<SceneModel>  models;
+    Image              whitetex;
     Image              hovermarker;
     Image              pickmarker;
     Image              hovertag;
     Image              hudimg;
     String             hudtxt;
-    Vector<String>     files;
-    Array<SceneModel>  models;
 
     Ray3D::Hit         hoverhit;
     Ray3D::Hit         pickhit;
@@ -68,7 +71,6 @@ private:
     bool               hovertagpicked = false;
     bool               pickpending    = false;
     bool               hoverdirty     = false;
-    float              modeltagy      = 0.0f;
     float              zoom           = 5.0f;
     float              goal           = 5.0f;
 
@@ -77,8 +79,6 @@ private:
     Pointf             pan            = { 0.0f, 0.0f };
     Pointf             goalpan        = { 0.0f, 0.0f };
 
-    float              gradbase       = 0.0f;
-    float              gradspan       = 0.0f;
     bool               dragging       = false;
     bool               panning        = false;
     bool               wireframe      = false;

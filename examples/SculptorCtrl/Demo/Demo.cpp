@@ -13,8 +13,8 @@ Image MakeTag(const String& text)
 	ImagePainter p(isz);
 	p.Clear(RGBAZero());
 	p.RoundedRectangle(0, 0, isz.cx, isz.cy, 4)
-	.Fill(RGBA { 20, 20, 30, 220 })
-	.Stroke(1, LtGray());
+	 .Fill(RGBA { 20, 20, 30, 220 })
+	 .Stroke(1, LtGray());
 	p.DrawText(6, 3, text, fnt, White());
 
 	return p;
@@ -33,7 +33,7 @@ Image MakeHoverTag(const String& name, const ModelGL& m, const Ray3D::Hit& hit, 
 		info << Format("Verts: %d, %d, %d\n", t.a, t.b, t.c);
 	}
 	info << Format("Pos:   %.2f, %.2f, %.2f\n", hit.point.x, hit.point.y, hit.point.z)
-		<< Format("Norm:  %.2f, %.2f, %.2f", hit.normal.x, hit.normal.y, hit.normal.z);
+	     << Format("Norm:  %.2f, %.2f, %.2f", hit.normal.x, hit.normal.y, hit.normal.z);
 
 	Vector<String> lns = Split(info, '\n');
 
@@ -52,8 +52,8 @@ Image MakeHoverTag(const String& name, const ModelGL& m, const Ray3D::Hit& hit, 
 	ImagePainter p(isz);
 	p.Clear(RGBAZero());
 	p.RoundedRectangle(0, 0, isz.cx, isz.cy, 4)
-	.Fill(RGBA { 24, 28, 42, 235 })
-	.Stroke(1, accent);
+	 .Fill(RGBA { 24, 28, 42, 235 })
+	 .Stroke(1, accent);
 	p.DrawText(6, 3, name, titlefnt, White());
 	p.DrawText(6 + namesz.cx, 3, status, titlefnt, accent);
 
@@ -80,7 +80,7 @@ Image MakeHitMarker(Color accent)
 ObjectViewer::ObjectViewer()
 {
 	WantFocus();
-	files = { "teapot.obj", "skull.obj", "bunny.obj" };
+	InitModels();
 	hovermarker = MakeHitMarker(Color(130, 210, 255));
 	pickmarker = MakeHitMarker(Color(255, 200, 120));
 
@@ -113,67 +113,72 @@ ObjectViewer::ObjectViewer()
 	});
 }
 
-void ObjectViewer::LoadModel()
+void ObjectViewer::InitModels()
 {
-	ClearScene();
+	const Vector<String> files = { "teapot.obj", "skull.obj", "bunny.obj" };
+	const float radius = 3.5f;
+
+	models.Clear();
+	for(int i = 0; i < files.GetCount(); i++) {
+		SceneModel& sm = models.Add();
+		sm.file = files[i];
+		sm.name = GetFileTitle(files[i]);
+		float angle = (float)i * (float)(2.0 * M_PI / files.GetCount());
+		sm.pos = Point3D(radius * cos(angle), 0.0f, radius * sin(angle));
+	}
+}
+
+bool ObjectViewer::SyncModel(int index)
+{
+	SceneModel& sm = models[index];
+	if(sm.loaded)
+		return true;
+
+	if(!LoadModelFromFile(sm.model, GetDataFile(sm.file))) {
+		Exclamation(Format("Could not load object file: %s", sm.file));
+		return false;
+	}
+
+	sm.model.Normalize(2.5f);
+
+	Box3D bounds = sm.model.ComputeBounds();
+	sm.gradbase = bounds.lo.y;
+	sm.gradspan = max(bounds.hi.y - bounds.lo.y, 0.001f);
+	sm.tagy = bounds.hi.y + 0.5f;
+	sm.tag = MakeTag(sm.name);
+
+	if(IsNull(whitetex))
+		whitetex = CreateImage(Size(1, 1), White());
+
+	int64 tid = sm.model.AddTexture(whitetex);
+	for(ModelGL::Vertex& v : sm.model.vertices)
+		v.textureid = tid;
+
+	sm.loaded = true;
+	return true;
+}
+
+void ObjectViewer::SyncAllModels()
+{
+	for(int i = 0; i < models.GetCount(); i++)
+		SyncModel(i);
+}
+
+void ObjectViewer::SelectModel(int index)
+{
 	ClearPick();
 	hoverhit.Clear();
 	hoverindex = -1;
 	hovertag.Clear();
 	hovertagidx = -1;
 
-	if(!LoadModelFromFile(model, GetDataFile(files[modelindex]))) {
-		Exclamation(Format("Could not load object file: %s", files[modelindex]));
-		return;
-	}
-
-	model.Normalize(2.5f);
-
-	Box3D bounds = model.ComputeBounds();
-	gradbase = bounds.lo.y;
-	gradspan = max(bounds.hi.y - bounds.lo.y, 0.001f);
-	modeltagy = bounds.hi.y + 0.5f;
-	modeltag = MakeTag(GetFileTitle(files[modelindex]));
-
-	int64 tid = model.AddTexture(CreateImage(Size(1, 1), White()));
-	for(ModelGL::Vertex& v : model.vertices)
-		v.textureid = tid;
-}
-
-void ObjectViewer::LoadModels()
-{
-	models.Clear();
-	float radius = 3.5f;
-
-	for(int i = 0; i < files.GetCount(); i++) {
-		SceneModel& sm = models.Add();
-		sm.name = GetFileTitle(files[i]);
-		sm.tag = MakeTag(sm.name);
-
-		float angle = (float)i * (float)(2.0 * M_PI / files.GetCount());
-		sm.pos = Point3D(radius * cos(angle), 0.0f, radius * sin(angle));
-
-		if(!LoadModelFromFile(sm.model, GetDataFile(files[i]))) {
-			Exclamation(Format("Could not load object file: %s", files[i]));
-			continue;
-		}
-
-		sm.model.Normalize(2.5f);
-
-		Box3D bounds = sm.model.ComputeBounds();
-		sm.gradbase = bounds.lo.y;
-		sm.gradspan = max(bounds.hi.y - bounds.lo.y, 0.001f);
-
-		int64 tid = sm.model.AddTexture(CreateImage(Size(1, 1), White()));
-		for(ModelGL::Vertex& v : sm.model.vertices)
-			v.textureid = tid;
-	}
+	modelindex = index;
+	SyncModel(modelindex);
 }
 
 void ObjectViewer::InitScene()
 {
-	LoadModel();
-	LoadModels();
+	SyncModel(modelindex);
 
 	extern const char *pixelshader, *vertexshader, *fragmentshader;
 
@@ -181,14 +186,10 @@ void ObjectViewer::InitScene()
 	SetPostProcess(pixelshader);
 }
 
-MatrixGL ObjectViewer::GetModelTransform() const
-{
-	return MatrixGL::Rotation(rot.x * DEGRAD, rot.y * DEGRAD, 0.0f);
-}
-
 MatrixGL ObjectViewer::GetModelTransform(int index) const
 {
-	return MatrixGL::Rotation(rot.x * DEGRAD, rot.y * DEGRAD, 0.0f) * MatrixGL::Translation(models[index].pos);
+	MatrixGL m = MatrixGL::Rotation(rot.x * DEGRAD, rot.y * DEGRAD, 0.0f);
+	return multiobject ? m * MatrixGL::Translation(models[index].pos) : m;
 }
 
 void ObjectViewer::UpdateHover(const GLScene& gls, Size sz)
@@ -201,23 +202,22 @@ void ObjectViewer::UpdateHover(const GLScene& gls, Size sz)
 	}
 
 	bool backface = wireframe || xray;
-	if(multiobject) {
-		int bestidx = -1;
-		Ray3D::Hit besthit;
-		for(int i = 0; i < models.GetCount(); i++) {
-			Ray3D::Hit hit = gls.Pick(mouse, sz, models[i].model, GetModelTransform(i), backface);
-			if(hit < besthit) {
-				besthit = hit;
-				bestidx = i;
-			}
+	int from = multiobject ? 0 : modelindex;
+	int to   = multiobject ? models.GetCount() : modelindex + 1;
+
+	int bestidx = -1;
+	Ray3D::Hit besthit;
+	for(int i = from; i < to; i++) {
+		if(!models[i].loaded)
+			continue;
+		Ray3D::Hit hit = gls.Pick(mouse, sz, models[i].model, GetModelTransform(i), backface);
+		if(hit < besthit) {
+			besthit = hit;
+			bestidx = i;
 		}
-		hoverindex = bestidx;
-		hoverhit = besthit;
 	}
-	else {
-		hoverhit = gls.Pick(mouse, sz, model, GetModelTransform(), backface);
-		hoverindex = hoverhit ? modelindex : -1;
-	}
+	hoverindex = bestidx;
+	hoverhit = besthit;
 
 	if(pickpending) {
 		pickpending = false;
@@ -254,7 +254,7 @@ void ObjectViewer::ClearPick()
 	Refresh();
 }
 
-Image ObjectViewer::GetHoverTag(int index, const String& name, const ModelGL& m, const Ray3D::Hit& hit, bool picked)
+Image ObjectViewer::GetHoverTag(int index, const SceneModel& sm, const Ray3D::Hit& hit, bool picked)
 {
 	if(!IsNull(hovertag)
 	&& hovertagidx == index
@@ -271,8 +271,31 @@ Image ObjectViewer::GetHoverTag(int index, const String& name, const ModelGL& m,
 	hovertagdist = hit.distance;
 	hovertagpos = hit.point;
 	hovertagnorm = hit.normal;
-	hovertag = MakeHoverTag(name, m, hit, picked);
+	hovertag = MakeHoverTag(sm.name, sm.model, hit, picked);
 	return hovertag;
+}
+
+void ObjectViewer::RenderModel(GLScene& gls, Sizef sz, int index)
+{
+	SceneModel& sm = models[index];
+	if(!sm.loaded)
+		return;
+
+	GLScene::Scope __(gls);
+	if(multiobject)
+		gls.Translate(sm.pos);
+
+	gls.Uniform("uGradBase", sm.gradbase);
+	gls.Uniform("uGradSpan", sm.gradspan);
+	gls.Render(sm.model);
+
+	bool hovered = (index == hoverindex && (bool)hoverhit);
+	Image tag = sm.tag;
+	if(hovered) {
+		bool picked = (bool)pickhit && pickindex == index && pickhit.triangle == hoverhit.triangle;
+		tag = GetHoverTag(index, sm, hoverhit, picked);
+	}
+	gls.AddOverlay(Point3D(0.0f, sm.tagy, 0.0f), sz, tag, GLScene::Overlay::BottomCenter, !hovered);
 }
 
 void ObjectViewer::RenderScene(GLScene& gls, Sizef sz)
@@ -281,38 +304,16 @@ void ObjectViewer::RenderScene(GLScene& gls, Sizef sz)
 	gls.Rotate(rot.x * DEGRAD, rot.y * DEGRAD, 0.0f);
 
 	if(multiobject) {
-		for(int i = 0; i < models.GetCount(); i++) {
-			SceneModel& sm = models[i];
-			GLScene::Scope ___(gls);
-			gls.Translate(sm.pos);
-			gls.Uniform("uGradBase", sm.gradbase);
-			gls.Uniform("uGradSpan", sm.gradspan);
-			gls.Render(sm.model);
-			float tagy = sm.gradbase + sm.gradspan + 0.5f;
-			bool hovered = (i == hoverindex && hoverhit);
-			Image tag = sm.tag;
-			if(hovered) {
-				bool picked = pickhit && pickindex == i && pickhit.triangle == hoverhit.triangle;
-				tag = GetHoverTag(i, sm.name, sm.model, hoverhit, picked);
-			}
-			gls.AddOverlay(Point3D(0.0f, tagy, 0.0f), sz, tag, GLScene::Overlay::BottomCenter, !hovered);
-		}
+		for(int i = 0; i < models.GetCount(); i++)
+			RenderModel(gls, sz, i);
 	}
-	else {
-		gls.Render(model);
-		bool hovered = (bool)hoverhit;
-		Image tag = modeltag;
-		if(hovered) {
-			bool picked = pickhit && pickhit.triangle == hoverhit.triangle;
-			tag = GetHoverTag(modelindex, GetFileTitle(files[modelindex]), model, hoverhit, picked);
-		}
-		gls.AddOverlay(Point3D(0.0f, modeltagy, 0.0f), sz, tag, GLScene::Overlay::BottomCenter, !hovered);
-	}
+	else
+		RenderModel(gls, sz, modelindex);
 }
 
 void ObjectViewer::AddOverlay(GLScene& gls)
 {
-	String modelname = multiobject ? "Multi-Object" : files[modelindex];
+	String modelname = multiobject ? "Multi-Object" : models[modelindex].file;
 
 	String txt = Format(
 		"Model: %s\n"
@@ -354,6 +355,7 @@ void ObjectViewer::AddOverlay(GLScene& gls)
 		Size bsz = tsz + Size(PAD, PAD) * 2;
 
 		ImagePainter w(bsz);
+		w.Clear(RGBAZero());
 		w.RoundedRectangle(0, 0, bsz.cx, bsz.cy, 8);
 		w.Fill(RGBA { 16, 16, 22, 200 });
 
@@ -398,8 +400,6 @@ void ObjectViewer::Render(GLScene& gls)
 	gls.UseShader("model-shader");
 
 	gls.Uniform("uUseGradient", gradient ? 1.0f : 0.0f);
-	gls.Uniform("uGradBase", gradbase);
-	gls.Uniform("uGradSpan", gradspan);
 	gls.Uniform("uColorLo", colorlo);
 	gls.Uniform("uColorHi", colorhi);
 	gls.Uniform("uTriSample", trisample ? 1.0f : 0.0f);
@@ -413,16 +413,16 @@ void ObjectViewer::Render(GLScene& gls)
 		gls.Uniform("uMouseUV", Point3D(mouse.x / fsz.cx, 1.0f - mouse.y / fsz.cy, 0.0f));
 	else
 		gls.Uniform("uMouseUV", Point3D(-10.0f, -10.0f, 0.0f));
-		
+
 	UpdateHover(gls, sz);
 
-    if(hoverhit) {
-        bool picked = pickhit && pickindex == hoverindex && pickhit.triangle == hoverhit.triangle;
-        gls.AddOverlay(hoverhit.point, fsz, picked ? pickmarker : hovermarker, GLScene::Overlay::Center, false);
-    }
+	if(hoverhit) {
+		bool picked = (bool)pickhit && pickindex == hoverindex && pickhit.triangle == hoverhit.triangle;
+		gls.AddOverlay(hoverhit.point, fsz, picked ? pickmarker : hovermarker, GLScene::Overlay::Center, false);
+	}
 
-    RenderScene(gls, fsz);
-    AddOverlay(gls);
+	RenderScene(gls, fsz);
+	AddOverlay(gls);
 }
 
 bool ObjectViewer::Key(dword key, int count)
@@ -471,18 +471,18 @@ bool ObjectViewer::Key(dword key, int count)
 	case 'i':
 	case 'I':
 		isometric ^= 1;
-		if(isometric) {
+		if(isometric)
 			goalrot = rot = Pointf(0.0f, 0.0f);
-		}
 		break;
 	case 'o':
 	case 'O':
 		multiobject ^= 1;
+		if(multiobject)
+			SyncAllModels();
 		ClearPick();
 		break;
 	case K_TAB:
-		modelindex = (modelindex + 1) % files.GetCount();
-		LoadModel();
+		SelectModel((modelindex + 1) % models.GetCount());
 		break;
 	case K_ESCAPE:
 		ClearPick();
@@ -518,9 +518,8 @@ void ObjectViewer::LeftUp(Point p, dword keyflags)
 	dragging = false;
 	ReleaseCapture();
 
-	if(abs(p.x - clickmouse.x) <= 3 && abs(p.y - clickmouse.y) <= 3) {
+	if(abs(p.x - clickmouse.x) <= 3 && abs(p.y - clickmouse.y) <= 3)
 		PickAt(p);
-	}
 	else {
 		mouse = p;
 		Refresh();
@@ -622,7 +621,9 @@ Image ObjectViewer::CursorImage(Point p, dword keyflags)
 
 GUI_APP_MAIN
 {
+	StdLogSetup(LOG_FILE);
 	Ctrl::GlobalBackBuffer();
+	SculptorCtrl::EnableDefaultShaderCache();
 
 	ObjectViewer viewer;
 

@@ -21,6 +21,11 @@ struct GLPipeline : Moveable<GLPipeline> {
     static GLuint                     defprogram;
     static VectorMap<String, GLuint>  userprograms;
     static GLuint                     postprogram;
+    static bool                       defaultshadercache;
+    static String                     defaultshadercachedir;
+
+    int                               shadercache;
+    String                            shadercachedir;
     GLuint                            curprogram;
     GLuint                            fboid;
     GLuint                            fbotex;
@@ -45,7 +50,11 @@ struct GLPipeline : Moveable<GLPipeline> {
     void                              End(Size viewsize);
     void                              Clear();
     void                              Reset();
+    bool                              IsShaderCacheEnabled() const;
+    static void                       ClearDefaultShaderCache();
+    void                              ClearShaderCache() const;
     GLuint                            CompileProg(const String& vsh, const String& fsh);
+    GLuint                            CompileProg(const String& vsh, const String& fsh, bool cache);
 
     GLPipeline();
     ~GLPipeline();

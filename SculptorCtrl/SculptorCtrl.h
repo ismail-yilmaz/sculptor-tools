@@ -51,6 +51,19 @@ public:
     static void   SetDoubleBuffering(bool enable = true) { doublebuffering = enable; }
     static void   SetMSAA(int samples = 1)               { msaasamples = samples; }
 
+    static void   SetDefaultShaderCache(const String& dir) { GLPipeline::defaultshadercachedir = dir; GLPipeline::defaultshadercache = !dir.IsEmpty(); }
+    static String GetDefaultShaderCache()                  { return GLPipeline::defaultshadercachedir; }
+    static void   EnableDefaultShaderCache(bool b = true)  { GLPipeline::defaultshadercache = b; }
+    static void   DisableDefaultShaderCache()              { GLPipeline::defaultshadercache = false; }
+    static bool   IsDefaultShaderCacheEnabled()            { return GLPipeline::defaultshadercache; }
+    static void   ClearDefaultShaderCache()                { GLPipeline::ClearDefaultShaderCache(); }
+
+    SculptorCtrl& SetShaderCache(const String& dir)        { glpipeline.shadercachedir = dir; glpipeline.shadercache = !dir.IsEmpty(); return *this; }
+    SculptorCtrl& SetShaderCache(bool b = true)            { glpipeline.shadercache = b; return *this; }
+    String        GetShaderCache() const                   { return Nvl(glpipeline.shadercachedir, GLPipeline::defaultshadercachedir); }
+    bool          IsShaderCacheEnabled() const             { return glpipeline.IsShaderCacheEnabled(); }
+    void          ClearShaderCache() const                 { glpipeline.ClearShaderCache(); }
+
     static void   CreateContext();
     static Size   CurrentViewport()                      { return currentviewport; }
     static void   SetCurrentViewport();
@@ -60,11 +73,14 @@ public:
     void          ExecuteGL(Event<> gl, bool swapbuffers = false);
 
     void          SetShader(const String& name, const String& vshader, const String& fshader);
+    void          SetShader(const String& name, const String& vshader, const String& fshader, bool cache);
     void          AddShader(const String& name, const String& vshader, const String& fshader);
+    void          AddShader(const String& name, const String& vshader, const String& fshader, bool cache);
     void          RemoveShader(const String& name);
     void          ClearShaders();
     
     void          SetPostProcess(const String& fshader);
+    void          SetPostProcess(const String& fshader, bool cache);
     void          ClearPostProcess();
 
 	void          RemoveTexture(int64 tid);

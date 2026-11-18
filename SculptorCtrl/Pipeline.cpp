@@ -1,6 +1,6 @@
 #include "SculptorCtrl.h"
 
-#define LLOG(x)  RLOG("GLPipeline: " << x)
+#define LLOG(x)  // RLOG("GLPipeline: " << x)
 
 namespace Upp {
 

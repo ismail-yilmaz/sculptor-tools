@@ -25,6 +25,27 @@ public:
         int   count;
     };
 
+    struct Bvh3 : Moveable<Bvh3> {
+        struct Node : Moveable<Node> {
+            Box3D bounds;
+            int   left;
+            int   right;
+            int   first;
+            int   count;
+        };
+
+        Vector<Node> nodes;
+        Vector<int>  indices;
+        int          vertexcount = 0;
+        int          trianglecount = 0;
+        bool         dirty = true;
+
+        void Clear();
+        void Invalidate()    { dirty = true; }
+        bool IsEmpty() const { return nodes.IsEmpty(); }
+        void Build(const ModelGL& model);
+    };
+
     Vector<Vertex>           vertices;
     Vector<Triangle>         triangles;
     VectorMap<int64, Image>  textures;
@@ -35,6 +56,7 @@ public:
     GLuint                   vertexbuffer;
     GLuint                   indexbuffer;
     Vector<Batch>            batches;
+    mutable Bvh3             bvh;
 
     void                     Clear();
     void                     SetDefaultColor(const RGBA& c)               { defaultcolor = c; }
@@ -47,6 +69,9 @@ public:
     ModelGL&                 AddSphere(float radius, int slices, int stacks, int64 tid = 0);
     Box3D                    ComputeBounds() const;
     Point3D                  GetCenter() const                            { return ComputeBounds().Center(); }
+
+    void                     InvalidateBvh()                              { bvh.Invalidate(); }
+    void                     SyncBvh() const;
 
     Ray3D::Hit               Intersect(const Ray3D& ray, bool backface = false) const;
     Ray3D::Hit               Intersect(const Ray3D& ray, const MatrixGL& transform, bool backface = false) const;

@@ -21,6 +21,205 @@ struct SortTri {
 	bool operator<(const SortTri& o) const { return tex < o.tex; }
 };
 
+inline float Axis(const Point3D& p, int ax)
+{
+	return ax == 0 ? p.x : (ax == 1 ? p.y : p.z);
+}
+
+float BoxArea(const Box3D& b)
+{
+	Point3D d = b.hi - b.lo;
+	return 2.0f * (max(d.x, 0.0f) * max(d.y, 0.0f)
+				+  max(d.y, 0.0f) * max(d.z, 0.0f)
+				+  max(d.z, 0.0f) * max(d.x, 0.0f));
+}
+
+void ExpandBox(Box3D& dst, const Box3D& src)
+{
+	dst.Expand(src.lo);
+	dst.Expand(src.hi);
+}
+
+int BuildBvhNode(Vector<ModelGL::Bvh3::Node>& nodes, Vector<int>& indices, const Vector<Box3D>& tb,
+													const Vector<Point3D>& tc, int beg, int end, int depth)
+{
+	constexpr int MAXLEAF  = 4;
+	constexpr int MAXDEPTH = 60;
+	constexpr int BINS     = 8;
+
+	int ni = nodes.GetCount();
+	nodes.Add();
+
+	Box3D bx;
+	bx.Clear();
+	for(int i = beg; i < end; i++)
+		ExpandBox(bx, tb[indices[i]]);
+	nodes[ni].bounds = bx;
+
+	int cnt = end - beg;
+	if(cnt <= MAXLEAF || depth >= MAXDEPTH) {
+		nodes[ni].left  = -1;
+		nodes[ni].right = -1;
+		nodes[ni].first = beg;
+		nodes[ni].count = cnt;
+		return ni;
+	}
+
+	Box3D cb;
+	cb.Clear();
+	for(int i = beg; i < end; i++)
+		cb.Expand(tc[indices[i]]);
+
+	int   bax = -1;
+	int   bbn = -1;
+	float bst = FLT_MAX;
+
+	for(int ax = 0; ax < 3; ax++) {
+		float lo = Axis(cb.lo, ax);
+		float hi = Axis(cb.hi, ax);
+		float sp = hi - lo;
+		if(sp <= 1e-6f)
+			continue;
+
+		Box3D bbx[BINS];
+		int   bc[BINS];
+		for(int b = 0; b < BINS; b++) {
+			bbx[b].Clear();
+			bc[b] = 0;
+		}
+
+		float inv = BINS / sp;
+		for(int i = beg; i < end; i++) {
+			int ti = indices[i];
+			int b  = clamp((int)((Axis(tc[ti], ax) - lo) * inv), 0, BINS - 1);
+			ExpandBox(bbx[b], tb[ti]);
+			bc[b]++;
+		}
+
+		Box3D lb[BINS - 1];
+		Box3D rb[BINS - 1];
+		int   lc[BINS - 1];
+		int   rc[BINS - 1];
+
+		Box3D acc;
+		acc.Clear();
+		int sum = 0;
+		for(int b = 0; b < BINS - 1; b++) {
+			if(bc[b] > 0)
+				ExpandBox(acc, bbx[b]);
+			sum += bc[b];
+			lb[b] = acc;
+			lc[b] = sum;
+		}
+
+		acc.Clear();
+		sum = 0;
+		for(int b = BINS - 1; b > 0; b--) {
+			if(bc[b] > 0)
+				ExpandBox(acc, bbx[b]);
+			sum += bc[b];
+			rb[b - 1] = acc;
+			rc[b - 1] = sum;
+		}
+
+		for(int b = 0; b < BINS - 1; b++) {
+			if(lc[b] == 0 || rc[b] == 0)
+				continue;
+			float cst = BoxArea(lb[b]) * lc[b] + BoxArea(rb[b]) * rc[b];
+			if(cst < bst) {
+				bst = cst;
+				bax = ax;
+				bbn = b;
+			}
+		}
+	}
+
+	int mid = beg;
+	if(bax >= 0) {
+		float lo  = Axis(cb.lo, bax);
+		float inv = BINS / (Axis(cb.hi, bax) - lo);
+		int   i   = beg;
+		int   j   = end - 1;
+		while(i <= j) {
+			int b = clamp((int)((Axis(tc[indices[i]], bax) - lo) * inv), 0, BINS - 1);
+			if(b <= bbn)
+				i++;
+			else {
+				Swap(indices[i], indices[j]);
+				j--;
+			}
+		}
+		mid = i;
+	}
+
+	if(mid <= beg || mid >= end)
+		mid = (beg + end) / 2;
+
+	int li = BuildBvhNode(nodes, indices, tb, tc, beg, mid, depth + 1);
+	int ri = BuildBvhNode(nodes, indices, tb, tc, mid, end, depth + 1);
+
+	nodes[ni].left  = li;
+	nodes[ni].right = ri;
+	nodes[ni].first = -1;
+	nodes[ni].count = 0;
+	return ni;
+}
+
+}
+
+void ModelGL::Bvh3::Clear()
+{
+	nodes.Clear();
+	indices.Clear();
+	vertexcount = 0;
+	trianglecount = 0;
+	dirty = true;
+}
+
+void ModelGL::Bvh3::Build(const ModelGL& model)
+{
+	Clear();
+
+	int vc = model.vertices.GetCount();
+	int tc = model.triangles.GetCount();
+	vertexcount = vc;
+	trianglecount = tc;
+	dirty = false;
+
+	if(vc == 0 || tc == 0)
+		return;
+
+	Vector<Box3D>   tb;
+	Vector<Point3D> tpc;
+	tb.SetCount(tc);
+	tpc.SetCount(tc);
+	indices.Reserve(tc);
+
+	for(int i = 0; i < tc; i++) {
+		const ModelGL::Triangle& t = model.triangles[i];
+		if(t.a < 0 || t.a >= vc || t.b < 0 || t.b >= vc || t.c < 0 || t.c >= vc)
+			continue;
+
+		const Point3D& p0 = model.vertices[t.a].position;
+		const Point3D& p1 = model.vertices[t.b].position;
+		const Point3D& p2 = model.vertices[t.c].position;
+
+		Box3D bx;
+		bx.Clear();
+		bx.Expand(p0);
+		bx.Expand(p1);
+		bx.Expand(p2);
+
+		tb[i]  = bx;
+		tpc[i] = bx.Center();
+		indices.Add(i);
+	}
+
+	if(indices.IsEmpty())
+		return;
+
+	nodes.Reserve(indices.GetCount() * 2);
+	BuildBvhNode(nodes, indices, tb, tpc, 0, indices.GetCount(), 0);
 }
 
 ModelGL::Vertex::Vertex()
@@ -77,12 +276,14 @@ void ModelGL::Clear()
 	vertices.Clear();
 	triangles.Clear();
 	textures.Clear();
+	bvh.Clear();
 	compiled = false;
 }
 
 ModelGL& ModelGL::AddVertex(const Vertex& v)
 {
 	vertices.Add(v);
+	bvh.Invalidate();
 	compiled = false;
 	return *this;
 }
@@ -90,6 +291,7 @@ ModelGL& ModelGL::AddVertex(const Vertex& v)
 ModelGL& ModelGL::AddTriangle(int a, int b, int c)
 {
 	triangles.Add(Triangle(a, b, c));
+	bvh.Invalidate();
 	compiled = false;
 	return *this;
 }
@@ -220,6 +422,14 @@ Box3D ModelGL::ComputeBounds() const
 	return box;
 }
 
+void ModelGL::SyncBvh() const
+{
+	if(!bvh.dirty && bvh.vertexcount == vertices.GetCount() && bvh.trianglecount == triangles.GetCount())
+		return;
+
+	bvh.Build(*this);
+}
+
 Ray3D::Hit ModelGL::Intersect(const Ray3D& ray, bool backface) const
 {
 	Ray3D::Hit best;
@@ -227,29 +437,62 @@ Ray3D::Hit ModelGL::Intersect(const Ray3D& ray, bool backface) const
 	if(IsNull(ray) || vc == 0 || triangles.IsEmpty())
 		return best;
 
-	if(!ray.Intersects(ComputeBounds(), best.distance))
+	SyncBvh();
+	if(bvh.IsEmpty())
 		return best;
 
-	for(int i = 0; i < triangles.GetCount(); i++) {
-		const Triangle& t = triangles[i];
-		if(t.a < 0 || t.a >= vc || t.b < 0 || t.b >= vc || t.c < 0 || t.c >= vc)
+	int stk[64];
+	int sp = 0;
+	stk[sp++] = 0;
+
+	while(sp > 0) {
+		const Bvh3::Node& nd = bvh.nodes[stk[--sp]];
+		if(!ray.Intersects(nd.bounds, best.distance))
 			continue;
 
-		Ray3D::Hit h = ray.IntersectTriangle(
-			vertices[t.a].position,
-			vertices[t.b].position,
-			vertices[t.c].position,
-			backface,
-			best.distance
-		);
-		if(h < best) {
-			best = h;
-			best.triangle = i;
-			Point3D n = vertices[t.a].normal * h.barycentric.x
-					+ vertices[t.b].normal * h.barycentric.y
-					+ vertices[t.c].normal * h.barycentric.z;
-			if(n.Squared() > 1e-8f)
-				best.normal = n.Normalized();
+		if(nd.count > 0) {
+			for(int i = 0; i < nd.count; i++) {
+				int ti = bvh.indices[nd.first + i];
+				const Triangle& t = triangles[ti];
+
+				Ray3D::Hit h = ray.IntersectTriangle(
+					vertices[t.a].position,
+					vertices[t.b].position,
+					vertices[t.c].position,
+					backface,
+					best.distance
+				);
+				if(h < best) {
+					best = h;
+					best.triangle = ti;
+					Point3D n = vertices[t.a].normal * h.barycentric.x
+							+ vertices[t.b].normal * h.barycentric.y
+							+ vertices[t.c].normal * h.barycentric.z;
+					if(n.Squared() > 1e-8f)
+						best.normal = n.Normalized();
+				}
+			}
+		}
+		else
+		if(nd.left >= 0 && nd.right >= 0) {
+			float d1 = (bvh.nodes[nd.left].bounds.Center() - ray.origin).Squared();
+			float d2 = (bvh.nodes[nd.right].bounds.Center() - ray.origin).Squared();
+			if(d1 < d2) {
+				if(sp < 64) stk[sp++] = nd.right;
+				if(sp < 64) stk[sp++] = nd.left;
+			}
+			else {
+				if(sp < 64) stk[sp++] = nd.left;
+				if(sp < 64) stk[sp++] = nd.right;
+			}
+		}
+		else
+		if(nd.left >= 0) {
+			if(sp < 64) stk[sp++] = nd.left;
+		}
+		else
+		if(nd.right >= 0) {
+			if(sp < 64) stk[sp++] = nd.right;
 		}
 	}
 
@@ -275,15 +518,32 @@ bool ModelGL::HitTest(const Ray3D& ray, bool backface) const
 	if(IsNull(ray) || vc == 0 || triangles.IsEmpty())
 		return false;
 
-	if(!ray.Intersects(ComputeBounds()))
+	SyncBvh();
+	if(bvh.IsEmpty())
 		return false;
 
-	for(const Triangle& t : triangles) {
-		if(t.a < 0 || t.a >= vc || t.b < 0 || t.b >= vc || t.c < 0 || t.c >= vc)
+	int stk[64];
+	int sp = 0;
+	stk[sp++] = 0;
+
+	while(sp > 0) {
+		const Bvh3::Node& nd = bvh.nodes[stk[--sp]];
+		if(!ray.Intersects(nd.bounds))
 			continue;
 
-		if(ray.IntersectsTriangle(vertices[t.a].position, vertices[t.b].position, vertices[t.c].position, backface))
-			return true;
+		if(nd.count > 0) {
+			for(int i = 0; i < nd.count; i++) {
+				const Triangle& t = triangles[bvh.indices[nd.first + i]];
+				if(ray.IntersectsTriangle(vertices[t.a].position, vertices[t.b].position, vertices[t.c].position, backface))
+					return true;
+			}
+		}
+		else {
+			if(nd.right >= 0 && sp < 64)
+				stk[sp++] = nd.right;
+			if(nd.left >= 0 && sp < 64)
+				stk[sp++] = nd.left;
+		}
 	}
 
 	return false;
@@ -320,6 +580,7 @@ void ModelGL::Normalize(float target)
 		v.position.z = (v.position.z - c.z) * s;
 	}
 
+	bvh.Invalidate();
 	compiled = false;
 }
 

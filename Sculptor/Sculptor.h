@@ -25,11 +25,33 @@ public:
         Triangle(int pa, int pb, int pc);
     };
 
+    struct Bvh3 : Moveable<Bvh3> {
+        struct Node : Moveable<Node> {
+            Box3D bounds;
+            int   left;
+            int   right;
+            int   first;
+            int   count;
+        };
+
+        Vector<Node> nodes;
+        Vector<int>  indices;
+        int          vertexcount = 0;
+        int          trianglecount = 0;
+        bool         dirty = true;
+
+        void Clear();
+        void Invalidate()    { dirty = true; }
+        bool IsEmpty() const { return nodes.IsEmpty(); }
+        void Build(const Model3D& model);
+    };
+
     Vector<Vertex>                  vertices;
     Vector<Triangle>                triangles;
     VectorMap<int64, Image>         textures;
     VectorMap<int64, Vector<Image>> mipmaps;
     RGBA                            defaultcolor;
+    mutable Bvh3                    bvh;
 
     void                            Clear();
     
@@ -43,6 +65,9 @@ public:
     Model3D&                        AddSphere(float radius, int slices, int stacks, int64 tid = 0);
     Box3D                           ComputeBounds() const;
     Point3D                         GetCenter() const;
+
+    void                            InvalidateBvh()                                    { bvh.Invalidate(); }
+    void                            SyncBvh() const;
 
     Ray3D::Hit                      Intersect(const Ray3D& ray, bool backface = false) const;
     Ray3D::Hit                      Intersect(const Ray3D& ray, const Matrix4D& transform, bool backface = false) const;

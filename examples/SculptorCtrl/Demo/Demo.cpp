@@ -409,7 +409,11 @@ void ObjectViewer::Render(GLScene& gls)
 	gls.Uniform("uXRay", xray ? 1.0f : 0.0f);
 
 	gls.Uniform("uResolution", Point3D(fsz.cx, fsz.cy, 0.0f));
-
+	if(Rect(sz).Contains(mouse))
+		gls.Uniform("uMouseUV", Point3D(mouse.x / fsz.cx, 1.0f - mouse.y / fsz.cy, 0.0f));
+	else
+		gls.Uniform("uMouseUV", Point3D(-10.0f, -10.0f, 0.0f));
+		
 	UpdateHover(gls, sz);
 
     if(hoverhit) {

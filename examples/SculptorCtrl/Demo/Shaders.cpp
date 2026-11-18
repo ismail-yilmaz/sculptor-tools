@@ -26,6 +26,7 @@ const char *vertexshader = R"(
 	out vec3 vNorm;
 	out vec2 vTex;
 	out vec4 vCol;
+	out vec3 vViewDir;
 
 	void main()
 	{
@@ -33,6 +34,7 @@ const char *vertexshader = R"(
 		vPos = vec3(uModelView * vec4(aPos, 1.0));
 		vNorm = normalize(mat3(uNormalMatrix) * aNorm);
 		vTex = aTex;
+		vViewDir = (uProjection[3][3] > 0.5) ? vec3(0.0, 0.0, 1.0) : normalize(-vPos);
 
 		if (uUseGradient > 0.5) {
 			float t = clamp((aPos.y - uGradBase) / uGradSpan, 0.0, 1.0);
@@ -54,6 +56,7 @@ const char *fragmentshader = R"(
 	in vec3 vNorm;
 	in vec2 vTex;
 	in vec4 vCol;
+	in vec3 vViewDir;
 
 	uniform sampler2D uTex;
 	uniform int   uUseTex;
@@ -125,15 +128,6 @@ const char *fragmentshader = R"(
 			base.rgb += vec3(0.05, 0.05, 0.1);
 		}
 
-		if(uRimShade > 0.5) {
-			vec3 viewdir = normalize(-vPos);
-			float rim = 1.0 - clamp(dot(viewdir, norm), 0.0, 1.0);
-			rim = pow(rim, 3.0);
-			base.r = clamp(base.r + rim * (180.0 / 255.0), 0.0, 1.0);
-			base.g = clamp(base.g + rim * (60.0 / 255.0), 0.0, 1.0);
-			base.b = clamp(base.b + rim * 1.0, 0.0, 1.0);
-		}
-
 		vec3 lit = vec3(0.2) * base.rgb;
 
 		for(int i = 0; i < uLightCount; i++) {
@@ -141,7 +135,15 @@ const char *fragmentshader = R"(
 			lit += uLightCol[i].rgb * diff * base.rgb;
 		}
 
-		FragColor = vec4(lit, base.a);
+		if(uRimShade > 0.5) {
+			vec3 viewdir = normalize(vViewDir);
+			float rim = 1.0 - clamp(dot(viewdir, norm), 0.0, 1.0);
+			rim = pow(rim, 3.0);
+			vec3 rimcol = vec3(180.0 / 255.0, 60.0 / 255.0, 1.0);
+			lit = mix(lit, rimcol, rim);
+		}
+
+		FragColor = vec4(clamp(lit, 0.0, 1.0), base.a);
 	}
 
 )";
